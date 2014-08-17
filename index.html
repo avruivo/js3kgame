@@ -1,1 +1,99 @@
-hello world
+<html>
+<body>
+    hello world
+    <br />
+    <label id="lblMsg"></label>
+    <br />
+    <canvas id="canvas" width="480" height="320" style="border:1px solid black; display: block; touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); width: 432px; height: 288px; margin-left: 467px; margin-top: 0px; cursor: inherit;"></canvas>
+
+    <br />
+    <button id="stopLoop">Stop loop!</button>
+</body>
+</html>
+
+
+
+<script language="Javascript">
+
+    var xpto = -1;
+    var color = "#FF0000";
+
+    function ChangeColor(val) {
+        if (color == "#FF0000") {
+            return "#00FF00";
+        } else {
+            return "#FF0000";
+        }
+    }
+
+function updateGame(){
+    document.getElementById("lblMsg").innerText = xpto;
+    var c = document.getElementById('canvas');
+
+    var ctx = c.getContext("2d");
+    var newXpto = xpto++;
+    ctx.fillStyle = color;
+    if (xpto > 480)
+    {
+        color = ChangeColor(xpto);
+        xpto = -1;
+    }
+    ctx.fillRect(xpto++, 0, 150, 75);
+}
+
+function drawGame() {
+}
+
+
+var mainloop = function () {
+    updateGame();
+    drawGame();
+};
+
+var animFrame = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.oRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        null;
+
+if (animFrame !== null) {
+    var canvas = document.getElementById('canvas');//.get(0);
+
+    var isMozilla = false; //$.browser.mozilla
+    if (isMozilla) {
+        var recursiveAnim = function () {
+            mainloop();
+            animFrame();
+        };
+
+        // setup for multiple calls
+        window.addEventListener("MozBeforePaint", recursiveAnim, false);
+
+        // start the mainloop
+        animFrame();
+    } else {
+        var recursiveAnim = function () {
+            mainloop();
+            animFrame(recursiveAnim, canvas);
+        };
+
+        // start the mainloop
+        animFrame(recursiveAnim, canvas);
+    }
+} else {
+    var ONE_FRAME_TIME = 1000.0 / 60.0;
+    var loop = setInterval(mainloop, ONE_FRAME_TIME);
+}
+
+function funcStopLoop(loop) {
+    window.clearInterval(loop);
+    //alert(123);
+}
+
+document.getElementById("stopLoop").addEventListener('click', function () {
+    //alert(123456);
+    console.log(this);
+}, false);
+
+</script>
