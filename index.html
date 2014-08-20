@@ -15,8 +15,15 @@
 
 <script language="Javascript">
 
+    /* ---- GLOBLAS (+) ----- */
     var xpto = -1;
+    var frameCount = 0;
     var color = "#FF0000";
+    var loop = null;
+
+    var shaleList = [];
+
+    /* ---- GLOBALS (-) ----- */
 
     function ChangeColor(val) {
         if (color == "#FF0000") {
@@ -26,74 +33,160 @@
         }
     }
 
-function updateGame(){
-    document.getElementById("lblMsg").innerText = xpto;
-    var c = document.getElementById('canvas');
-
-    var ctx = c.getContext("2d");
-    var newXpto = xpto++;
-    ctx.fillStyle = color;
-    if (xpto > 480)
-    {
-        color = ChangeColor(xpto);
-        xpto = -1;
+    function InitShapes() {
+        shaleList.push(new Shape(10, 0, 25, 25, "#FF0000", 1, 1, "sUm"));
+        shaleList.push(new Shape(0, 40, 39, 25, "#00FF00", -1, -1, "sDois"));
+        shaleList.push(new Shape(0, 80, 100, 25, "#0000FF", -1, 1, "sTres"));
     }
-    ctx.fillRect(xpto++, 0, 150, 75);
-}
 
-function drawGame() {
-}
+    InitShapes();
+
+    function updateGame() {
+        frameCount++;
+        document.getElementById("lblMsg").innerText = xpto;
+        var c = document.getElementById('canvas');
+
+        var ctx = c.getContext("2d");
+
+        logEveryFrameX(shaleList.length, 100);
+        //console.log();
+
+        ctx.clearRect(0, 0, c.width, c.height);
+        for (var i in shaleList) {
+            oRec = moveShape(shaleList[i], c);
+            ctx.fillStyle = oRec.fill;
+            ctx.fillRect(oRec.x, oRec.y, oRec.w, oRec.h);
+        }
 
 
-var mainloop = function () {
-    updateGame();
-    drawGame();
-};
+        /*
+        var newXpto = xpto++;
+        ctx.fillStyle = color;
+        if (xpto > 480)
+        {
+            color = ChangeColor(xpto);
+            xpto = -1;
+        }
+        ctx.fillRect(0, 0, xpto++, 75);
+        */
+    }
 
-var animFrame = window.requestAnimationFrame ||
-        window.webkitRequestAnimationFrame ||
-        window.mozRequestAnimationFrame ||
-        window.oRequestAnimationFrame ||
-        window.msRequestAnimationFrame ||
-        null;
+    function moveShape(shape, canvas) {
+        var speed = 1; //Math.random() * 2;
 
-if (animFrame !== null) {
-    var canvas = document.getElementById('canvas');//.get(0);
+        var movedShape = new Shape(shape.x + speed * (shape.vx),
+            shape.y + speed * (shape.vy),
+            shape.w, shape.h, shape.fill, null, null, null);
 
-    var isMozilla = false; //$.browser.mozilla
-    if (isMozilla) {
-        var recursiveAnim = function () {
-            mainloop();
+        logEveryFrameX("withinX: " + isWithinXCanvas(movedShape, canvas))
+        //check X boundaries
+        if (!isWithinXCanvas(movedShape, canvas)) {
+            shape.vx *= -1;
+            movedShape.x = shape.x + speed * (shape.vx);
+        }
+
+        //check Y boundaries
+        if (!isWithinYCanvas(movedShape, canvas)) {
+            shape.vy *= -1;
+            movedShape.y = shape.y + speed * (shape.vy);
+        }
+
+        shape.x = movedShape.x;
+        shape.y = movedShape.y;
+
+        logEveryFrameX("name: " + shape.name + "; x:" + shape.x + "; y:" + shape.y, 100);
+        return shape;
+    }
+
+    function drawGame() {
+    }
+
+
+    function Shape(x, y, w, h, fill, vx, vy, name) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.fill = fill;
+        this.vx = vx;
+        this.vy = vy;
+        this.name = name;
+    }
+
+    function isWithinXCanvas(shape, canvas) {
+        //logEveryFrameX("X:{0}; x >= 0?: {1}; x <= canvas.width({2}): {3}".format(shape.x, thi, shape.y, canvas.height));
+        return shape.x >= 0 && shape.x + shape.w <= canvas.width;
+    }
+
+    function isWithinYCanvas(shape, canvas) {
+        return shape.y >= 0 && shape.y + shape.h <= canvas.height;
+    }
+
+    function isWithinCanvas(shape, canvas) {
+        return isWithinXCanvas(shape, canvas) && isWithinYCanvas(shape, canvas);
+    }
+
+
+
+    var mainloop = function () {
+        updateGame();
+        drawGame();
+    };
+
+    var animFrame = window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame ||
+            window.oRequestAnimationFrame ||
+            window.msRequestAnimationFrame ||
+            null;
+
+    animFrame = null; // TODO: improve this for other browsers
+
+    if (animFrame !== null) {
+        var canvas = document.getElementById('canvas');//.get(0);
+
+        var isMozilla = false; //$.browser.mozilla
+        if (isMozilla) {
+            var recursiveAnim = function () {
+                mainloop();
+                animFrame();
+            };
+
+            // setup for multiple calls
+            window.addEventListener("MozBeforePaint", recursiveAnim, false);
+
+            // start the mainloop
             animFrame();
-        };
+        } else {
+            var recursiveAnim = function () {
+                mainloop();
+                animFrame(recursiveAnim, canvas);
+            };
 
-        // setup for multiple calls
-        window.addEventListener("MozBeforePaint", recursiveAnim, false);
-
-        // start the mainloop
-        animFrame();
+            // start the mainloop
+            loop = animFrame(recursiveAnim, canvas);
+        }
     } else {
-        var recursiveAnim = function () {
-            mainloop();
-            animFrame(recursiveAnim, canvas);
-        };
-
-        // start the mainloop
-        animFrame(recursiveAnim, canvas);
+        var ONE_FRAME_TIME = 1000.0 / 60.0;
+        loop = setInterval(mainloop, ONE_FRAME_TIME);
     }
-} else {
-    var ONE_FRAME_TIME = 1000.0 / 60.0;
-    var loop = setInterval(mainloop, ONE_FRAME_TIME);
-}
 
-function funcStopLoop(loop) {
-    window.clearInterval(loop);
-    //alert(123);
-}
+    function funcStopLoop(loop) {
+        if (animFrame !== null) {
+            console.log('TODO');
+        } else {
+            window.clearInterval(loop);
+        }
+    }
 
-document.getElementById("stopLoop").addEventListener('click', function () {
-    //alert(123456);
-    console.log(this);
-}, false);
+    function logEveryFrameX(val, frameX) {
+        if (frameCount % frameX == 0 || frameCount == 1 || frameX == undefined) {
+            console.log(val);
+        }
+    }
+
+    document.getElementById("stopLoop").addEventListener('click', function () {
+        funcStopLoop(loop);
+    }, false);
 
 </script>
