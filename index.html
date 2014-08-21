@@ -1,11 +1,22 @@
 <html>
+<head title="castaway">
+    <style>
+        #canvas {
+            background-image: url('thumb01.png');
+        }
+    </style>
+</head>
 <body>
     hello world
     <br />
     <label id="lblMsg"></label>
     <br />
-    <canvas id="canvas" width="480" height="320" style="border:1px solid black; display: block; touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); width: 432px; height: 288px; margin-left: 467px; margin-top: 0px; cursor: inherit;"></canvas>
-
+    <div style="">
+        <canvas id="canvas" width="800" height="480" 
+                style="margin:auto; border:1px solid black; display: block; 
+touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); 
+ cursor: inherit"></canvas>
+    </div>
     <br />
     <button id="stopLoop">Stop loop!</button>
 </body>
@@ -20,6 +31,7 @@
     var frameCount = 0;
     var color = "#FF0000";
     var loop = null;
+    var c = document.getElementById('canvas');
 
     var shapeList = [];
 
@@ -34,9 +46,14 @@
     }
 
     function InitShapes() {
-        shapeList.push(new Shape(10, 0, 25, 25, "#00FFFF", 1, 1, "sUm"));
-        shapeList.push(new Shape(0, 40, 39, 25, "#00FF00", -1, -1, "sDois"));
-        shapeList.push(new Shape(0, 80, 100, 25, "#0000FF", -1, 1, "sTres"));
+        //shapeList.push(new Shape(10, 0, 25, 25, "#00FFFF", 1, 1, "sUm"));
+        //shapeList.push(new Shape(0, 40, 39, 25, "#00FF00", -1, -1, "sDois"));
+        //shapeList.push(new Shape(0, 80, 100, 25, "#0000FF", -1, 1, "sTres"));
+
+
+        shapeList.push(new Shape(135, 370, 184, 18, "#0000FF", -1, 1, "raft"));
+        shapeList.push(new Shape(600, 350, 150, 65, "#0000FF", -1, 1, "shark"));
+        shapeList.push(new Shape(565, 220, 50, 65, "#0000FF", -1, 1, "fish"));
     }
 
     InitShapes();
@@ -44,19 +61,24 @@
     function updateGame() {
         frameCount++;
         document.getElementById("lblMsg").innerText = xpto;
-        var c = document.getElementById('canvas');
-
         var ctx = c.getContext("2d");
-
-        //logEveryFrameX(shapeList.length, 100);
-
         ctx.clearRect(0, 0, c.width, c.height);
+        
+        /*
+        var imgBg = new Image();
+        imgBg.src = "thumb01.png";
+        imgBg.onload = function () {
+            ctx.drawImage(imgBg, 0, 0);
+        }
+        */
+        
         for (var i in shapeList) {
 
             shapeList[i].isCollision = false; //reset collision;
             oRec = moveShape(shapeList[i], c);
             ctx.fillStyle = getFill(oRec);
             ctx.fillRect(oRec.x, oRec.y, oRec.w, oRec.h);
+            write(oRec);
         }
 
 
@@ -70,10 +92,12 @@
         }
         ctx.fillRect(0, 0, xpto++, 75);
         */
+
+        
     }
 
     function moveShape(shape, canvas) {
-        var speed = 2; //Math.random() * 2;
+        var speed = 0; //Math.random() * 2;
 
         var movedShape = new Shape(shape.x + speed * (shape.vx),
             shape.y + speed * (shape.vy),
@@ -168,6 +192,12 @@
         this.vy = vy;
         this.name = name;
         this.isCollision = false;
+    }
+
+    function write(shape) {
+        var ctx = c.getContext("2d");
+        ctx.fillStyle = "Red";
+        ctx.fillText(shape.name, shape.x, shape.y);
     }
 
     function isWithinXCanvas(shape, canvas) {
