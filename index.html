@@ -12,9 +12,9 @@
     <label id="lblMsg"></label>
     <br />
     <div style="">
-        <canvas id="canvas" width="800" height="480" 
-                style="margin:auto; border:1px solid black; display: block; 
-touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); 
+        <canvas id="canvas" width="800" height="480"
+                style="margin:auto; border:1px solid black; display: block;
+touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
  cursor: inherit"></canvas>
     </div>
     <br />
@@ -27,6 +27,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 <script language="Javascript">
 
     /* ---- GLOBLAS (+) ----- */
+    var startTime = new Date(Date.now());
     var xpto = -1;
     var frameCount = 0;
     var color = "#FF0000";
@@ -34,9 +35,65 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     var c = document.getElementById('canvas');
 
     var shapeList = [];
+    var currentLevel = [];
+
 
     /* ---- GLOBALS (-) ----- */
 
+
+    /* ---- NAMESPACES (+) ---- */
+    var lvl = {
+        init: function () {
+            //setInterval(function () { console.log("timerAvr: " + frameCount + " OR " + currentSeconds() + " seconds!" + new Date(Date.now()).getSeconds())}, 10*1000);
+        },
+
+        lvl01: function () {
+            currentLevel.push(new lvlEvent(2, new Shark()));
+        }
+    }
+
+
+    var NPC = {
+        spawn: function (timer) {
+            console.log("spawn from NPC");
+        },
+
+        kill: function () {
+            console.log('need to implement this method on child!');
+        },
+
+        action: function () {
+            console.log('need to implement this method on child!');
+        }
+    }
+
+    var Shark = function () {
+        this.NPC = NPC;
+
+        //OVERRIDE
+        this.NPC.spawn = function () {
+            var spawnX, spawnVx = null;
+            var spanInLeftSide = Math.random() < .5;
+            logEveryFrameX("spanInLeftSide: " + spanInLeftSide);
+            if (spanInLeftSide) {
+                spawnX = -65;
+                spawnVx = 1;
+            }
+            else {
+                spawnX = 700;
+                spawnVx = -1;
+            }
+
+            //bool spanInLeftSide;
+            //int delay
+            var newShark = new Shape(spawnX, 350, 150, 65, "#0000FF", spawnVx, 0, "shark" + shapeList.length);
+            shapeList.push(newShark);
+
+            logEveryFrameX("I just spawned " + shapeList);
+        }
+    }
+
+    /* ---- NAMESPACES (-) ---- */
     function ChangeColor(val) {
         if (color == "#FF0000") {
             return "#00FF00";
@@ -46,24 +103,53 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     }
 
     function InitShapes() {
+
+        var arr = [];
+        arr.push(1);
+        arr.push(2);
+        arr.push(3);
+        arr.push(4);
+
+        /*
+        console.log("arr:" + arr);
+        arr.shift();
+        console.log("arr.poped; arr: " + arr);
+        */
+
+        lvl.lvl01(); //INIT level 01;
         //shapeList.push(new Shape(10, 0, 25, 25, "#00FFFF", 1, 1, "sUm"));
         //shapeList.push(new Shape(0, 40, 39, 25, "#00FF00", -1, -1, "sDois"));
         //shapeList.push(new Shape(0, 80, 100, 25, "#0000FF", -1, 1, "sTres"));
 
 
-        shapeList.push(new Shape(135, 370, 184, 18, "#0000FF", -1, 1, "raft"));
-        shapeList.push(new Shape(600, 350, 150, 65, "#0000FF", -1, 1, "shark"));
-        shapeList.push(new Shape(565, 220, 50, 65, "#0000FF", -1, 1, "fish"));
+        shapeList.push(new Shape(135, 370, 184, 18, "#0000FF", 0, 0, "raft"));
+        //shapeList.push(new Shape(600, 350, 150, 65, "#0000FF", 1, 0, "shark"));
+        shapeList.push(new Shape(565, 220, 50, 65, "#0000FF", 0, 1, "fish"));
+
+        /*
+        var xpto = new Shark();
+        xpto.NPC.spawn(null);
+        */
     }
 
     InitShapes();
 
     function updateGame() {
+        //logEveryFrameX(Math.random()<.5, 100);
         frameCount++;
         document.getElementById("lblMsg").innerText = xpto;
         var ctx = c.getContext("2d");
         ctx.clearRect(0, 0, c.width, c.height);
-        
+
+        //START LOGIC:
+        while (currentLevel.length > 0
+                && currentLevel[0].spawnTime <= currentSeconds()) {
+            var event = currentLevel.shift().event;
+            console.log("currentLevel.length: " + currentLevel.length);
+            event.NPC.spawn(null);
+            
+        }
+
         /*
         var imgBg = new Image();
         imgBg.src = "thumb01.png";
@@ -71,7 +157,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             ctx.drawImage(imgBg, 0, 0);
         }
         */
-        
+
         for (var i in shapeList) {
 
             shapeList[i].isCollision = false; //reset collision;
@@ -93,11 +179,11 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         ctx.fillRect(0, 0, xpto++, 75);
         */
 
-        
+
     }
 
     function moveShape(shape, canvas) {
-        var speed = 0; //Math.random() * 2;
+        var speed = 1; //Math.random() * 2;
 
         var movedShape = new Shape(shape.x + speed * (shape.vx),
             shape.y + speed * (shape.vy),
@@ -120,7 +206,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         shape.y = movedShape.y;
 
 
-        var flag = shape.name =="sTres";
+        var flag = shape.name == "sTres";
         var currShapeIndex = shapeList.indexOf(shape);
 
         if (flag)
@@ -131,8 +217,9 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             shape.isCollision |= doCollide(shape, shapeList[i]);
             //if (flag)
             //    logEveryFrameX("checking coll between '"+shape.name+"' and '"+shapeList[i].name+"'");
-            if (shape.isCollision)
-                logEveryFrameX("'" + shape.name + "' colided with '" + shapeList[i].name + "'");
+
+            //if (shape.isCollision)
+              //  logEveryFrameX("'" + shape.name + "' colided with '" + shapeList[i].name + "'");
         }
 
         //logEveryFrameX("name: " + shape.name + "; x:" + shape.x + "; y:" + shape.y, 100);
@@ -174,12 +261,17 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
 
     function getFill(shape) {
-        if (shape.isCollision){
+        if (shape.isCollision) {
             return "#FF0000";
         }
         else {
             return shape.fill;
         }
+    }
+
+    function lvlEvent(spawnTime, event) {
+        this.spawnTime = spawnTime;
+        this.event = event;
     }
 
     function Shape(x, y, w, h, fill, vx, vy, name) {
@@ -192,6 +284,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         this.vy = vy;
         this.name = name;
         this.isCollision = false;
+        this.ignoreRightBottomCanvas = true;
     }
 
     function write(shape) {
@@ -202,11 +295,11 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
     function isWithinXCanvas(shape, canvas) {
         //logEveryFrameX("X:{0}; x >= 0?: {1}; x <= canvas.width({2}): {3}".format(shape.x, thi, shape.y, canvas.height));
-        return shape.x >= 0 && shape.x + shape.w <= canvas.width;
+        return shape.ignoreRightBottomCanvas || (shape.x >= 0 && shape.x + shape.w <= canvas.width);
     }
 
     function isWithinYCanvas(shape, canvas) {
-        return shape.y >= 0 && shape.y + shape.h <= canvas.height;
+        return shape.ignoreRightBottomCanvas || (shape.y >= 0 && shape.y + shape.h <= canvas.height);
     }
 
     function isWithinCanvas(shape, canvas) {
@@ -270,6 +363,13 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         if (frameCount % frameX == 0 || frameCount == 1 || frameX == undefined) {
             console.log(val);
         }
+    }
+
+    function currentSeconds(now) {
+        if (now == undefined)
+            now = new Date(Date.now());
+
+        return new Date((now - startTime)).getSeconds();
     }
 
     document.getElementById("stopLoop").addEventListener('click', function () {
