@@ -75,7 +75,16 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         this.shape = new Shape(135, 370, 184, 18, "#0000FF", 0, 0, "raft");
         var that = this;
         this.spawn = function(){
-            shapeList.push(that.shape);
+            shapeList.push(that);
+        }
+
+        this.gotHit = function (hitFrom) {
+            console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
+        };
+
+        this.hitWith = function (target) {
+            //console.log('I("' + this.name + '") just hit "' + target.name + '"');
+            target.gotHit(this);
         }
     }
 
@@ -99,15 +108,25 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             return new Shape(spawnX, 350, 150, 65, "#0000FF", spawnVx, 0, "shark" + shapeList.length);
         }
 
-        var that = this;
+        
         this.shape = gen();
+        var that = this;
 
         //OVERRIDE
         this.spawn = function () {
             console.log(that.shape);
-            shapeList.push(that.shape);
+            shapeList.push(that);
 
             logEveryFrameX("I just spawned " + shapeList);
+        }
+
+        this.gotHit = function (hitFrom) {
+            console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
+        };
+
+        this.hitWith = function (target) {
+            //console.log('I("' + this.name + '") just hit "' + target.name + '"');
+            target.gotHit(this);
         }
     }
 
@@ -143,7 +162,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
         
         //shapeList.push(new Shape(600, 350, 150, 65, "#0000FF", 1, 0, "shark"));
-        shapeList.push(new Shape(565, 200, 50, 65, "#0000FF", 0, 1, "fish"));
+        //shapeList.push(new Shape(565, 200, 50, 65, "#0000FF", 0, 1, "fish"));
 
         /*
         var xpto = new Shark();
@@ -179,16 +198,11 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         */
 
         for (var i in shapeList) {
-
-            shapeList[i].isCollision = false; //reset collision;
-            currShape = moveShape(shapeList[i], c);
+            shapeList[i].shape.isCollision = false; //reset collision;
+            currShape = moveShape(shapeList[i], c).shape;
             ctx.fillStyle = getFill(currShape);
             ctx.fillRect(currShape.x, currShape.y, currShape.w, currShape.h);
             write(currShape);
-
-            
-
-
         }
 
 
@@ -206,9 +220,10 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
     }
 
-    function moveShape(shape, canvas) {
+    function moveShape(iShape, canvas) {
         var speed = 1; //Math.random() * 2;
 
+        var shape = iShape.shape;
         var movedShape = new Shape(shape.x + speed * (shape.vx),
             shape.y + speed * (shape.vy),
             shape.w, shape.h, shape.fill, null, null, null);
@@ -231,18 +246,18 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
 
         var flag = shape.name == "sTres";
-        var currShapeIndex = shapeList.indexOf(shape);
+        var currShapeIndex = shapeList.indexOf(iShape);
 
         if (flag)
             logEveryFrameX("currShpeIndex: " + currShapeIndex, 100);
 
         //for each shape that has already been moved (before currIndex), check if this move colides!
         for (var i = 0; i < currShapeIndex; i++) {
-            var colided = doCollide(shape, shapeList[i]);
+            var colided = doCollide(shape, shapeList[i].shape);
             shape.isCollision |= colided;
 
             if (colided) {
-                shape.hitWith(shapeList[i]);
+                iShape.hitWith(shapeList[i]);
             }
 
             //if (flag)
@@ -253,7 +268,8 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         }
 
         //logEveryFrameX("name: " + shape.name + "; x:" + shape.x + "; y:" + shape.y, 100);
-        return shape;
+        iShape.shape = shape;
+        return iShape;
     }
 
     function doCollide(s1, s2) {
@@ -316,15 +332,6 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         this.name = name;
         this.isCollision = false;
         this.ignoreRightBottomCanvas = true;
-
-        this.gotHit = function (hitFrom) {
-            console.log('I("' + this.name + '") was hit by "' + hitFrom.name + '"');
-        };
-
-        this.hitWith = function (target) {
-            //console.log('I("' + this.name + '") just hit "' + target.name + '"');
-            target.gotHit(this);
-        }
     }
 
     function write(shape) {
