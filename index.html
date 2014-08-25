@@ -37,6 +37,8 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     var shapeList = [];
     var currentLevel = [];
 
+    var hud = null;
+
 
     /* ---- GLOBALS (-) ----- */
 
@@ -45,9 +47,11 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     var lvl = {
         init: function () {
             //setInterval(function () { console.log("timerAvr: " + frameCount + " OR " + currentSeconds() + " seconds!" + new Date(Date.now()).getSeconds())}, 10*1000);
+            hud = new Hud();
         },
 
         lvl01: function () {
+            currentLevel.push(new lvlEvent(1, new Raft()));
             currentLevel.push(new lvlEvent(2, new Shark()));
         }
     }
@@ -67,11 +71,17 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         }
     }
 
-    var Shark = function () {
-        this.NPC = NPC;
+    var Raft = function () {
+        this.shape = new Shape(135, 370, 184, 18, "#0000FF", 0, 0, "raft");
+        var that = this;
+        this.spawn = function(){
+            shapeList.push(that.shape);
+        }
+    }
 
-        //OVERRIDE
-        this.NPC.spawn = function () {
+    var Shark = function () {
+        
+        function gen() {
             var spawnX, spawnVx = null;
             var spanInLeftSide = Math.random() < .5;
             logEveryFrameX("spanInLeftSide: " + spanInLeftSide);
@@ -86,8 +96,16 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
             //bool spanInLeftSide;
             //int delay
-            var newShark = new Shape(spawnX, 350, 150, 65, "#0000FF", spawnVx, 0, "shark" + shapeList.length);
-            shapeList.push(newShark);
+            return new Shape(spawnX, 350, 150, 65, "#0000FF", spawnVx, 0, "shark" + shapeList.length);
+        }
+
+        var that = this;
+        this.shape = gen();
+
+        //OVERRIDE
+        this.spawn = function () {
+            console.log(that.shape);
+            shapeList.push(that.shape);
 
             logEveryFrameX("I just spawned " + shapeList);
         }
@@ -116,15 +134,16 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         console.log("arr.poped; arr: " + arr);
         */
 
+        lvl.init();
         lvl.lvl01(); //INIT level 01;
         //shapeList.push(new Shape(10, 0, 25, 25, "#00FFFF", 1, 1, "sUm"));
         //shapeList.push(new Shape(0, 40, 39, 25, "#00FF00", -1, -1, "sDois"));
         //shapeList.push(new Shape(0, 80, 100, 25, "#0000FF", -1, 1, "sTres"));
 
 
-        shapeList.push(new Shape(135, 370, 184, 18, "#0000FF", 0, 0, "raft"));
+        
         //shapeList.push(new Shape(600, 350, 150, 65, "#0000FF", 1, 0, "shark"));
-        shapeList.push(new Shape(565, 220, 50, 65, "#0000FF", 0, 1, "fish"));
+        shapeList.push(new Shape(565, 200, 50, 65, "#0000FF", 0, 1, "fish"));
 
         /*
         var xpto = new Shark();
@@ -145,8 +164,9 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         while (currentLevel.length > 0
                 && currentLevel[0].spawnTime <= currentSeconds()) {
             var event = currentLevel.shift().event;
-            console.log("currentLevel.length: " + currentLevel.length);
-            event.NPC.spawn(null);
+            //console.log("currentLevel.length: " + currentLevel.length);
+            console.log("Going to spanw a " + event.shape.name);
+            event.spawn(null);
             
         }
 
@@ -161,10 +181,14 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         for (var i in shapeList) {
 
             shapeList[i].isCollision = false; //reset collision;
-            oRec = moveShape(shapeList[i], c);
-            ctx.fillStyle = getFill(oRec);
-            ctx.fillRect(oRec.x, oRec.y, oRec.w, oRec.h);
-            write(oRec);
+            currShape = moveShape(shapeList[i], c);
+            ctx.fillStyle = getFill(currShape);
+            ctx.fillRect(currShape.x, currShape.y, currShape.w, currShape.h);
+            write(currShape);
+
+            
+
+
         }
 
 
@@ -214,7 +238,13 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
         //for each shape that has already been moved (before currIndex), check if this move colides!
         for (var i = 0; i < currShapeIndex; i++) {
-            shape.isCollision |= doCollide(shape, shapeList[i]);
+            var colided = doCollide(shape, shapeList[i]);
+            shape.isCollision |= colided;
+
+            if (colided) {
+                shape.hitWith(shapeList[i]);
+            }
+
             //if (flag)
             //    logEveryFrameX("checking coll between '"+shape.name+"' and '"+shapeList[i].name+"'");
 
@@ -257,6 +287,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     }
 
     function drawGame() {
+        hud.draw();
     }
 
 
@@ -285,12 +316,42 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         this.name = name;
         this.isCollision = false;
         this.ignoreRightBottomCanvas = true;
+
+        this.gotHit = function (hitFrom) {
+            console.log('I("' + this.name + '") was hit by "' + hitFrom.name + '"');
+        };
+
+        this.hitWith = function (target) {
+            //console.log('I("' + this.name + '") just hit "' + target.name + '"');
+            target.gotHit(this);
+        }
     }
 
     function write(shape) {
         var ctx = c.getContext("2d");
         ctx.fillStyle = "Red";
         ctx.fillText(shape.name, shape.x, shape.y);
+    }
+
+    function Hud(strength, draftHealth) {
+        if (strength == undefined)
+            strength = 10;
+        if (draftHealth == undefined)
+            draftHealth = 6;
+
+        this.strength = strength;
+        this.draftHealth = draftHealth;
+        this.draw = function () {
+            var ctx = c.getContext("2d");
+            ctx.font = '15pt Verdana';
+            ctx.fillStyle = "Black";
+            var hpTxt = "Health:     " + draftHealth;
+            var strengthTxt = "Strength: " + strength;
+
+            var y = 30;
+            ctx.fillText(hpTxt, 10, y);
+            ctx.fillText(strengthTxt, 10, y+25);
+        }
     }
 
     function isWithinXCanvas(shape, canvas) {
