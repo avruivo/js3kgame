@@ -48,6 +48,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         init: function () {
             //setInterval(function () { console.log("timerAvr: " + frameCount + " OR " + currentSeconds() + " seconds!" + new Date(Date.now()).getSeconds())}, 10*1000);
             hud = new Hud();
+            //hud.init();
         },
 
         lvl01: function () {
@@ -74,7 +75,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     var Raft = function () {
         this.shape = new Shape(135, 370, 184, 18, "#0000FF", 0, 0, "raft");
         var that = this;
-        this.spawn = function(){
+        this.spawn = function () {
             shapeList.push(that);
         }
 
@@ -86,10 +87,39 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             //console.log('I("' + this.name + '") just hit "' + target.name + '"');
             target.gotHit(this);
         }
+
+        this.takeDps = function(dps){
+            hud.health -= dps;
+        }
     }
 
     var Shark = function () {
-        
+        this.shape = gen();
+        var that = this;
+
+        var attack1Dps = 1;
+        var _enemy = null;
+
+        //OVERRIDE
+        this.spawn = function () {
+            console.log(that.shape);
+            shapeList.push(that);
+
+            logEveryFrameX("I just spawned " + shapeList);
+        }
+
+        this.gotHit = function (hitFrom) {
+            console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
+        };
+
+        this.hitWith = function (target) {
+            //console.log('I("' + this.name + '") just hit "' + target.name + '"');
+            target.gotHit(this);
+            if (target.shape.name == "raft") {
+                attack(target, attack1Dps);
+            }
+        }
+
         function gen() {
             var spawnX, spawnVx = null;
             var spanInLeftSide = Math.random() < .5;
@@ -108,25 +138,25 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             return new Shape(spawnX, 350, 150, 65, "#0000FF", spawnVx, 0, "shark" + shapeList.length);
         }
 
-        
-        this.shape = gen();
-        var that = this;
+        function attack(enemy, dps) {
+            if (_enemy == null) {
+                _enemy = enemy;
+                that.shape.vx = 0;
 
-        //OVERRIDE
-        this.spawn = function () {
-            console.log(that.shape);
-            shapeList.push(that);
-
-            logEveryFrameX("I just spawned " + shapeList);
+                var attackCastTime = 2 * 1000; //2secs
+                var castMethod = function () {
+                    enemy.takeDps(dps);
+                };
+                //castMethod();
+                cast(castMethod, attackCastTime);
+            }
         }
 
-        this.gotHit = function (hitFrom) {
-            console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
-        };
+        function cast(method, attackCastTime) {
+            var castDelay = 1000; //1sec
 
-        this.hitWith = function (target) {
-            //console.log('I("' + this.name + '") just hit "' + target.name + '"');
-            target.gotHit(this);
+            var timeoutMethod = function () { setInterval(method, attackCastTime); };
+            setTimeout(timeoutMethod, castDelay);
         }
     }
 
@@ -160,7 +190,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         //shapeList.push(new Shape(0, 80, 100, 25, "#0000FF", -1, 1, "sTres"));
 
 
-        
+
         //shapeList.push(new Shape(600, 350, 150, 65, "#0000FF", 1, 0, "shark"));
         //shapeList.push(new Shape(565, 200, 50, 65, "#0000FF", 0, 1, "fish"));
 
@@ -186,7 +216,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             //console.log("currentLevel.length: " + currentLevel.length);
             console.log("Going to spanw a " + event.shape.name);
             event.spawn(null);
-            
+
         }
 
         /*
@@ -264,7 +294,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             //    logEveryFrameX("checking coll between '"+shape.name+"' and '"+shapeList[i].name+"'");
 
             //if (shape.isCollision)
-              //  logEveryFrameX("'" + shape.name + "' colided with '" + shapeList[i].name + "'");
+            //  logEveryFrameX("'" + shape.name + "' colided with '" + shapeList[i].name + "'");
         }
 
         //logEveryFrameX("name: " + shape.name + "; x:" + shape.x + "; y:" + shape.y, 100);
@@ -304,6 +334,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
     function drawGame() {
         hud.draw();
+        //console.log("drawn!");
     }
 
 
@@ -340,25 +371,46 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         ctx.fillText(shape.name, shape.x, shape.y);
     }
 
-    function Hud(strength, draftHealth) {
-        if (strength == undefined)
-            strength = 10;
-        if (draftHealth == undefined)
-            draftHealth = 6;
+    function Hud(hp, str) {
+        if (hp == undefined){
+            hp = 6;
+        }
+        if (str == undefined)
+            str = 10;
 
-        this.strength = strength;
-        this.draftHealth = draftHealth;
+        //this.init = function () {
+        //        strength = 10;
+        //        draftHealth = 6;
+        //}
+
+        this.strength = str;
+        this.health = hp;
         this.draw = function () {
             var ctx = c.getContext("2d");
             ctx.font = '15pt Verdana';
             ctx.fillStyle = "Black";
-            var hpTxt = "Health:     " + draftHealth;
-            var strengthTxt = "Strength: " + strength;
+            var hpTxt = "Health:     " + this.health;
+            var strengthTxt = "Strength: " + this.strength;
 
             var y = 30;
             ctx.fillText(hpTxt, 10, y);
-            ctx.fillText(strengthTxt, 10, y+25);
+            ctx.fillText(strengthTxt, 10, y + 25);
         }
+
+        //this.updateHud = function(hp, str) {
+        //    if(hp != undefined && hp != null){
+        //        this.drafthealth = hp;
+        //    }
+        //    if(str != undefined && str != null)
+        //        strength = str;
+        //};
+
+        //function updateHud(hp, str) {
+        //    if (hp != undefined && hp != null)
+        //        draftHealth = hp;
+        //    if (str != undefined && str != null)
+        //        strength = str;
+        //}
     }
 
     function isWithinXCanvas(shape, canvas) {
