@@ -6,11 +6,12 @@
         }
     </style>
 </head>
-<body>
+<body onload="init()">
     hello world
     <br />
     <label id="lblMsg"></label>
     <br />
+    <button id="restartGame">RestartGame!</button>
     <div style="">
         <canvas id="canvas" width="800" height="480"
                 style="margin:auto; border:1px solid black; display: block;
@@ -31,8 +32,9 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     var xpto = -1;
     var frameCount = 0;
     var color = "#FF0000";
-    var loop = null;
+    //var loop = null;
     var c = document.getElementById('canvas');
+    var intervals = [];
 
     var shapeList = [];
     var currentLevel = [];
@@ -41,6 +43,83 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
 
     /* ---- GLOBALS (-) ----- */
+
+    function clearExtraIntervals(intervalsArray) {
+        
+        for (var i = 0; i < intervalsArray.length; i++) {
+            if (i != 0) {
+                window.clearInterval(intervalsArray[i]);
+            }
+        }
+
+        var mLoop = intervals[0];
+        intervals = [];
+        intervals.push(mLoop);
+    }
+
+    function gameInit() {
+        clearExtraIntervals(intervals);
+        startTime = new Date(Date.now());
+        xpto = -1;
+        frameCount = 0;
+        color = "#FF0000";
+        //loop = null;
+        c = document.getElementById('canvas');
+        shapeList = [];
+        currentLevel = [];
+        hud = null;
+        InitShapes();
+    }
+
+    function init() {
+        document.getElementById("stopLoop").addEventListener('click', function () {
+            funcStopLoop(intervals[0]);
+            //alert("clear:" + intervals[0]);
+            
+        }, false);
+
+        document.getElementById("restartGame").addEventListener('click', function () {
+            alert("Game Restart!");
+            gameInit();
+        }, false);
+
+        animFrame = null; // TODO: improve this for other browsers
+        var intervalId = null;
+
+        if (animFrame !== null) {
+            var canvas = document.getElementById('canvas');//.get(0);
+
+            var isMozilla = false; //$.browser.mozilla
+            if (isMozilla) {
+                var recursiveAnim = function () {
+                    mainloop();
+                    animFrame();
+                };
+
+                // setup for multiple calls
+                window.addEventListener("MozBeforePaint", recursiveAnim, false);
+
+                // start the mainloop
+                animFrame();
+            } else {
+                var recursiveAnim = function () {
+                    mainloop();
+                    animFrame(recursiveAnim, canvas);
+                };
+
+                // start the mainloop
+                intervalId = animFrame(recursiveAnim, canvas);
+            }
+        } else {
+            var ONE_FRAME_TIME = 1000.0 / 60.0;
+            intervalId = window.setInterval(mainloop, ONE_FRAME_TIME);
+            
+        }
+        intervals.push(intervalId);
+        console.log("INTERVALID: " + intervalId);
+        gameInit();
+    }
+
 
 
     /* ---- NAMESPACES (+) ---- */
@@ -88,7 +167,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             target.gotHit(this);
         }
 
-        this.takeDps = function(dps){
+        this.takeDps = function (dps) {
             hud.health -= dps;
         }
     }
@@ -155,12 +234,16 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         function cast(method, attackCastTime) {
             var castDelay = 1000; //1sec
 
-            var timeoutMethod = function () { setInterval(method, attackCastTime); };
+            var timeoutMethod = function () {
+                var intervalId = window.setInterval(method, attackCastTime);
+                intervals.push(intervalId);
+            };
             setTimeout(timeoutMethod, castDelay);
         }
     }
 
     /* ---- NAMESPACES (-) ---- */
+
     function ChangeColor(val) {
         if (color == "#FF0000") {
             return "#00FF00";
@@ -171,13 +254,12 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
     function InitShapes() {
 
+        /*
         var arr = [];
         arr.push(1);
         arr.push(2);
         arr.push(3);
         arr.push(4);
-
-        /*
         console.log("arr:" + arr);
         arr.shift();
         console.log("arr.poped; arr: " + arr);
@@ -200,14 +282,20 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         */
     }
 
-    InitShapes();
-
     function updateGame() {
         //logEveryFrameX(Math.random()<.5, 100);
         frameCount++;
         document.getElementById("lblMsg").innerText = xpto;
         var ctx = c.getContext("2d");
         ctx.clearRect(0, 0, c.width, c.height);
+
+        if (hud.health <= 0) {
+            window.clearExtraIntervals(intervals);
+            //funcStopLoop(intervals[0]);
+            alert("Game Over!");
+            gameInit();
+            //console.log("Game Over!");
+        }
 
         //START LOGIC:
         while (currentLevel.length > 0
@@ -372,7 +460,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     }
 
     function Hud(hp, str) {
-        if (hp == undefined){
+        if (hp == undefined) {
             hp = 6;
         }
         if (str == undefined)
@@ -440,42 +528,14 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             window.msRequestAnimationFrame ||
             null;
 
-    animFrame = null; // TODO: improve this for other browsers
 
-    if (animFrame !== null) {
-        var canvas = document.getElementById('canvas');//.get(0);
 
-        var isMozilla = false; //$.browser.mozilla
-        if (isMozilla) {
-            var recursiveAnim = function () {
-                mainloop();
-                animFrame();
-            };
-
-            // setup for multiple calls
-            window.addEventListener("MozBeforePaint", recursiveAnim, false);
-
-            // start the mainloop
-            animFrame();
-        } else {
-            var recursiveAnim = function () {
-                mainloop();
-                animFrame(recursiveAnim, canvas);
-            };
-
-            // start the mainloop
-            loop = animFrame(recursiveAnim, canvas);
-        }
-    } else {
-        var ONE_FRAME_TIME = 1000.0 / 60.0;
-        loop = setInterval(mainloop, ONE_FRAME_TIME);
-    }
-
-    function funcStopLoop(loop) {
+    function funcStopLoop(loop2) {
         if (animFrame !== null) {
             console.log('TODO');
         } else {
-            window.clearInterval(loop);
+            window.clearInterval(loop2);
+            console.log(loop2);
         }
     }
 
@@ -491,9 +551,4 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
         return new Date((now - startTime)).getSeconds();
     }
-
-    document.getElementById("stopLoop").addEventListener('click', function () {
-        funcStopLoop(loop);
-    }, false);
-
 </script>
