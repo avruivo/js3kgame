@@ -13,7 +13,7 @@
     <br />
     <button id="stopLoop">Stop loop!</button>  <button id="restartGame">RestartGame!</button>
     <br />
-    <button id="stopLoop">Fix boat!</button>  <button id="restartGame">Get fish!</button> <button id="restartGame">Hit shark</button><button id="restartGame">Hit shark HARDER</button>
+    <button id="earth1">[1] Fix boat!</button>  <button id="air1">[2] Get fish!</button> <button id="fire1">[3] Hit shark</button><button id="fire2">[4] Hit shark HARDER</button>
     <div style="">
         <canvas id="canvas" width="800" height="480"
                 style="margin:auto; border:1px solid black; display: block;
@@ -21,7 +21,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
  cursor: inherit"></canvas>
     </div>
     <br />
-    
+
 </body>
 </html>
 
@@ -42,8 +42,10 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     var currentLevel = [];
 
     var hud = null;
+    var magePlayer = null;
 
     var opacity = 0.8;
+    var fishToEat = 0;
 
 
     /* ---- GLOBALS (-) ----- */
@@ -99,6 +101,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         shapeList = [];
         currentLevel = [];
         hud = null;
+        fishToEat = 0;
         InitShapes();
     }
 
@@ -112,6 +115,13 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         document.getElementById("restartGame").addEventListener('click', function () {
             alert("Game Restart!");
             gameInit();
+        }, false);
+
+        document.getElementById("air1").addEventListener('click', function () {
+            if (magePlayer != null && magePlayer != undefined) {
+                magePlayer.cast(2);
+                lockoutSubmit(this);
+            }
         }, false);
 
         animFrame = null; // TODO: improve this for other browsers
@@ -151,7 +161,41 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         gameInit();
     }
 
+    function lockoutSubmit(button) {
+        //var oldValue = button.value;
+        var oldText = button.innerText;
 
+        button.setAttribute('disabled', true);
+        button.value = '...processing...';
+
+
+        var cdValue = 5000;
+
+        setTimeout(function () {
+            button.innerText = oldText;
+            button.removeAttribute('disabled');
+        }, cdValue);
+
+        var started = new Date(Date.now());
+        var intervalMethod = function () {
+            showCooldown(button, started, cdValue / 1000, oldText);
+        };
+
+        var interval = setInterval(intervalMethod, 1000); //update cooldown every sec
+
+        setTimeout(function () {
+            window.clearInterval(interval);
+            button.value = oldText;
+        }, cdValue);
+
+    }
+
+    function showCooldown(obj, startTime, totalSeconds, oldText) {
+        var now = new Date(Date.now());
+        var secondsPast = new Date((now - startTime)).getSeconds();
+        var totalLeft = totalSeconds - secondsPast;
+        obj.innerText = oldText + " (" + totalLeft + ")";
+    }
 
     /* ---- NAMESPACES (+) ---- */
     var lvl = {
@@ -183,8 +227,9 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         }
     }
 
-    var Mage = function(parent){
+    var Mage = function (parent) {
         this.shape = gen(parent);
+        this.facedRight = true;
         var that = this;
         this.spawn = function () {
             shapeList.push(that);
@@ -211,18 +256,48 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             var mageCenter = Math.floor(mageW / 2);
             var mageX = parentShape.x + parentCenter - mageCenter;
 
-            return new Shape(mageX, parentShape.y-mageH, mageW, mageH, "#038EEF", parentShape.vx, parentShape.vy, "mage")
+            return new Shape(mageX, parentShape.y - mageH, mageW, mageH, "#038EEF", parentShape.vx, parentShape.vy, "mage")
+        }
+
+        function castGetFish() {
+            setTimeout(function () { getFish(); }, 0.5 * 1000);
+        }
+
+        function getFish() {
+            for (var i = 0; i < shapeList.length; i++) {
+                var item = shapeList[i];
+
+                if (item.shape.name.lastIndexOf("fish", 0) === 0) {
+                    item.catch();
+                }
+            }
+        }
+
+        this.cast = function (attackId) {
+            //alert(attackId);
+            switch (attackId) {
+                case 1: //earth, fix boat
+                    ;
+                    break;
+                case 2: //air, get fish
+                    castGetFish();
+                    ;
+                    break;
+                default:
+                    ;
+            }
         }
     }
 
     var Raft = function () {
-        
+
         this.shape = new Shape(135, 370, 184, 18, "#0000FF", 0, 0, "raft");
         var that = this;
         this.mage = new Mage(this.shape);
         this.spawn = function () {
             shapeList.push(that);
             shapeList.push(this.mage);
+            magePlayer = this.mage;
         }
 
         this.gotHit = function (hitFrom) {
@@ -341,6 +416,12 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             shapeList.splice(pos, 1);
         }
 
+        this.catch = function () {
+            fishToEat++;
+            console.log("mage caught me");
+            this.kill();
+        }
+
         function gen() {
             var spawnX, spawnVy = null;
             var spawnDistance = 10; //distance in px between fish spawns
@@ -349,7 +430,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
             var randomX = Math.floor(Math.random() * spawnDistance);
             var spawnX = Math.floor(c.width / spawnDistance) * randomX;
-            console.log("SPANW_X_FISH: " + spawnX + "("+randomX+")");
+            console.log("SPANW_X_FISH: " + spawnX + "(" + randomX + ")");
             //shapeList.push(new Shape(565, 200, 50, 65, "#0000FF", 0, 1, "fish"));
 
             return new Shape(spawnX, 305, 50, 65, "#0000FF", 0, spawnVy, "fish" + shapeList.length);
@@ -379,7 +460,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             setTimeout(timeoutMethod, castDelay);
         }
 
-        
+
     }
 
     /* ---- NAMESPACES (-) ---- */
@@ -656,6 +737,8 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             var y = 30;
             ctx.fillText(hpTxt, 10, y);
             ctx.fillText(strengthTxt, 10, y + 25);
+
+            ctx.fillText("FishToEat: " + fishToEat, 10, y + 2 * 25);
         }
 
         //this.updateHud = function(hp, str) {
