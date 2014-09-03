@@ -28,7 +28,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
 
 <script language="Javascript">
-
+    
     /* ---- GLOBLAS (+) ----- */
     var startTime = new Date(Date.now());
     var xpto = -1;
@@ -117,10 +117,17 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             gameInit();
         }, false);
 
+        document.getElementById("fire1").addEventListener('click', function () {
+            if (magePlayer != null && magePlayer != undefined) {
+                magePlayer.castSpell(3);
+                lockoutSubmit(this, 2000);
+            }
+        }, false);
+
         document.getElementById("air1").addEventListener('click', function () {
             if (magePlayer != null && magePlayer != undefined) {
-                magePlayer.cast(2);
-                lockoutSubmit(this);
+                magePlayer.castSpell(2);
+                lockoutSubmit(this, 5000);
             }
         }, false);
 
@@ -161,15 +168,12 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         gameInit();
     }
 
-    function lockoutSubmit(button) {
+    function lockoutSubmit(button, cdValue) {
         //var oldValue = button.value;
         var oldText = button.innerText;
 
         button.setAttribute('disabled', true);
         button.value = '...processing...';
-
-
-        var cdValue = 5000;
 
         setTimeout(function () {
             button.innerText = oldText;
@@ -186,7 +190,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         setTimeout(function () {
             window.clearInterval(interval);
             button.value = oldText;
-        }, cdValue);
+        }, cdValue-1);
 
     }
 
@@ -207,8 +211,8 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
         lvl01: function () {
             currentLevel.push(new lvlEvent(1, new Raft()));
-            //currentLevel.push(new lvlEvent(2, new Shark()));
-            currentLevel.push(new lvlEvent(2, new Fish()));
+            currentLevel.push(new lvlEvent(2, new Shark()));
+            currentLevel.push(new lvlEvent(3, new Fish()));
         }
     }
 
@@ -229,7 +233,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
     var Mage = function (parent) {
         this.shape = gen(parent);
-        this.facedRight = true;
+        this.direction = "R";
         var that = this;
         this.spawn = function () {
             shapeList.push(that);
@@ -248,6 +252,32 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             hud.health -= dps;
         }
 
+        this.isSameDirection = function(shape){
+            return shape.x >= this.shape.x && this.direction == "R"
+                    || shape.x <= this.shape.x && this.direction == "L";
+        }
+
+        this.castSpell = function (attackId) {
+            //alert(attackId);
+            switch (attackId) {
+                case 1: //earth, fix boat
+                    ;
+                    break;
+                case 2: //air, get fish
+                    castGetFish();
+                    ;
+                    break;
+                case 3: //fire, attack shark
+                    //attackShark
+                    var dps = 1;
+                    cast(function () { attackShark(dps); })
+                    ;
+                    break;
+                default:
+                    ;
+            }
+        }
+
         function gen(parentShape) {
             //ctx.fillRect(166, 240, 85, 130);
             var mageW = 85;
@@ -259,6 +289,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             return new Shape(mageX, parentShape.y - mageH, mageW, mageH, "#038EEF", parentShape.vx, parentShape.vy, "mage")
         }
 
+
         function castGetFish() {
             setTimeout(function () { getFish(); }, 0.5 * 1000);
         }
@@ -268,29 +299,37 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                 var item = shapeList[i];
 
                 if (item.shape.name.lastIndexOf("fish", 0) === 0) {
-                    item.catch();
+                    if (magePlayer.isSameDirection(item.shape)){
+                        item.catch();
+                        break;
+                    }
+                }
+                
+            }
+        }
+
+        function attackShark(dps) {
+            //get shark to attack
+            for (var i = 0; i < shapeList.length; i++) {
+                var item = shapeList[i];
+
+                if (item.shape.name.lastIndexOf("shark", 0) === 0) {
+                    if (magePlayer.isSameDirection(item.shape)){
+                        var newHp = item.takeDps(dps);
+                        if (newHp == 0) {
+                            item.kill();
+                        }
+                            
+                    }
+                    break;
                 }
             }
         }
 
-        this.cast = function (attackId) {
-            //alert(attackId);
-            switch (attackId) {
-                case 1: //earth, fix boat
-                    ;
-                    break;
-                case 2: //air, get fish
-                    castGetFish();
-                    ;
-                    break;
-                default:
-                    ;
-            }
-        }
+        
     }
 
     var Raft = function () {
-
         this.shape = new Shape(135, 370, 184, 18, "#0000FF", 0, 0, "raft");
         var that = this;
         this.mage = new Mage(this.shape);
@@ -311,10 +350,13 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
         this.takeDps = function (dps) {
             hud.health -= dps;
+            return hud.health;
         }
     }
 
-    var Shark = function () {
+    var Shark = function (hp) {
+        if (hp == undefined) hp = 3;
+        this.health = hp;
         this.shape = gen();
         var that = this;
 
@@ -339,6 +381,18 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             if (target.shape.name == "raft") {
                 attack(target, attack1Dps);
             }
+        }
+
+        this.takeDps = function (dps) {
+            var newHp = this.health - dps;
+            this.health = newHp > 0 ? newHp : 0;
+            return this.health;
+        }
+
+        this.kill = function () {
+            var pos = shapeList.indexOf(that);
+            console.log("Going to kill: " + that.shape.name);
+            shapeList.splice(pos, 1);
         }
 
         function gen() {
@@ -369,19 +423,21 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                     enemy.takeDps(dps);
                 };
                 //castMethod();
-                cast(castMethod, attackCastTime);
+                cast(castMethod, 1000, attackCastTime);
             }
         }
 
-        function cast(method, attackCastTime) {
-            var castDelay = 1000; //1sec
+        //function cast(method, attackCastTime) {
+        //    var castDelay = 1000; //1sec
 
-            var timeoutMethod = function () {
-                var intervalId = window.setInterval(method, attackCastTime);
-                intervals.push(intervalId);
-            };
-            setTimeout(timeoutMethod, castDelay);
-        }
+        //    var timeoutMethod = function () {
+        //        var intervalId = window.setInterval(method, attackCastTime);
+        //        intervals.push(intervalId);
+        //    };
+        //    setTimeout(timeoutMethod, castDelay);
+        //}
+
+
     }
     var Fish = function () {
         this.shape = gen();
@@ -406,7 +462,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             //console.log('I("' + this.name + '") just hit "' + target.name + '"');
             target.gotHit(this);
             if (target.shape.name == "raft") {
-                attack(target, attack1Dps);
+                //attack(target, attack1Dps);
             }
         }
 
@@ -436,31 +492,35 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             return new Shape(spawnX, 305, 50, 65, "#0000FF", 0, spawnVy, "fish" + shapeList.length);
         }
 
-        function attack(enemy, dps) {
-            if (_enemy == null) {
-                _enemy = enemy;
-                that.shape.vx = 0;
+        //function attack(enemy, dps) {
+        //    if (_enemy == null) {
+        //        _enemy = enemy;
+        //        that.shape.vx = 0;
 
-                var attackCastTime = 2 * 1000; //2secs
-                var castMethod = function () {
-                    enemy.takeDps(dps);
-                };
-                //castMethod();
-                cast(castMethod, attackCastTime);
-            }
-        }
+        //        var attackCastTime = 2 * 1000; //2secs
+        //        var castMethod = function () {
+        //            enemy.takeDps(dps);
+        //        };
+        //        //castMethod();
+        //        cast(castMethod, attackCastTime);
+        //    }
+        //}
+    }
 
-        function cast(method, attackCastTime) {
-            var castDelay = 1000; //1sec
 
-            var timeoutMethod = function () {
+    function cast(method, castDelay, attackCastTime) {
+        if(castDelay == undefined || castDelay == null)
+            castDelay = 0.5*1000; //0.5sec
+
+        var timeoutMethod = function () {
+            if (attackCastTime == undefined || attackCastTime == null) {
+                method(); //call method
+            } else {
                 var intervalId = window.setInterval(method, attackCastTime);
                 intervals.push(intervalId);
-            };
-            setTimeout(timeoutMethod, castDelay);
-        }
-
-
+            }
+        };
+        setTimeout(timeoutMethod, castDelay);
     }
 
     /* ---- NAMESPACES (-) ---- */
@@ -542,11 +602,10 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             var iShape = moveShape(shapeList[i], c);
             if (iShape != null) {
                 currShape = iShape.shape;
-                var str = "fish";
 
                 ctx.fillStyle = getFill(currShape);
                 ctx.fillRect(currShape.x, currShape.y, currShape.w, currShape.h);
-                write(currShape);
+                write(iShape);
             }
         }
 
@@ -703,10 +762,16 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         this.ignoreRightBottomCanvas = true;
     }
 
-    function write(shape) {
+    function write(iShape) {
+        var shape = iShape.shape;
         var ctx = c.getContext("2d");
         ctx.fillStyle = "Red";
         ctx.fillText(shape.name, shape.x, shape.y);
+
+        if (shape.name.lastIndexOf("shark", 0) === 0) {
+            ctx.fillStyle = "White";
+            ctx.fillText(iShape.health, shape.x+40, shape.y + 20);
+        }
     }
 
     function logPos(shape) {
@@ -739,6 +804,31 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             ctx.fillText(strengthTxt, 10, y + 25);
 
             ctx.fillText("FishToEat: " + fishToEat, 10, y + 2 * 25);
+
+            if (magePlayer != null && magePlayer != undefined) {
+                var direction = "->";
+                if (magePlayer.direction == "L")
+                    direction = "<-";
+
+                ctx.fillText("SIDE: " + direction, 10, y + 3 * 25);
+            }
+            //debugHud(this);
+
+        }
+
+        function debugHud(obj) {
+            var ctx = c.getContext("2d");
+            ctx.fillText("FishToEat: " + fishToEat, 10, obj.y + 2 * 25);
+
+            if (magePlayer != null && magePlayer != undefined) {
+                var direction = "->";
+                if (magePlayer.direction == "L")
+                    direction = "<-";
+
+                ctx.fillText("SIDE: " + direction, 10, obj.y + 3 * 25);
+            }
+
+            
         }
 
         //this.updateHud = function(hp, str) {
