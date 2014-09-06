@@ -106,6 +106,60 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     }
 
     function init() {
+
+        //Set up key listener
+        function onkey(d, e) {
+            if (!e) e = window.e;
+            var c = e.keyCode;
+            if (e.charCode && c == 0)
+                c = e.charCode;
+
+            //left
+            if (c == 37) {
+                this.magePlayer.direction = "L";
+                this.magePlayer.shape.vx = -d * 2;
+            }
+
+            //right
+            if (c == 39) {
+                this.magePlayer.direction = "R";
+                this.magePlayer.shape.vx = d * 2;
+            }
+
+            if (c == 38) keys.u1 = d; //up
+            
+            if (c == 40) keys.d1 = d; //down
+
+            if (c == 65 || c == 81) keys.l2 = d; //a/q
+            if (c == 90 || c == 87) keys.u2 = d; //z/w
+            if (c == 83) keys.d2 = d; //s
+            if (c == 68) keys.r2 = d; //d
+
+            if (!d) {
+                if (c == 27) { //Escape
+                    setState(INTRO);
+                }
+                if (c == 32) { //Scape
+                    if (state == INTRO) {
+                        introNext();
+                    }
+                }
+
+                if (c == 82) { //R
+                    if (state == INTRO || state == GAMEOVER) {
+                        setState(GAME);
+                    }
+                }
+            }
+        };
+        document.onkeyup = function (e) {
+            onkey(0, e);
+        };
+        document.onkeydown = function (e) {
+            onkey(1, e);
+        };
+
+
         document.getElementById("stopLoop").addEventListener('click', function () {
             funcStopLoop(intervals[0]);
             //alert("clear:" + intervals[0]);
@@ -693,6 +747,8 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                 iShape.kill();
                 return null;
             }
+        } else if (shape.name == "raft") {
+            shape.vx = this.magePlayer.shape.vx;
         }
 
 
@@ -717,12 +773,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         shape.y = movedShape.y;
 
 
-        var flag = shape.name == "sTres";
         var currShapeIndex = shapeList.indexOf(iShape);
-
-        if (flag)
-            logEveryFrameX("currShpeIndex: " + currShapeIndex, 100);
-
         //for each shape that has already been moved (before currIndex), check if this move colides!
         for (var i = 0; i < currShapeIndex; i++) {
             var colided = doCollide(shape, shapeList[i].shape);
@@ -860,7 +911,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                 if (magePlayer.direction == "L")
                     direction = "<-";
 
-                ctx.fillText("SIDE: " + direction, 10, y + 3 * 25);
+                //ctx.fillText("SIDE: " + direction, 10, y + 3 * 25);
             }
             //debugHud(this);
 
@@ -875,7 +926,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                 if (magePlayer.direction == "L")
                     direction = "<-";
 
-                ctx.fillText("SIDE: " + direction, 10, obj.y + 3 * 25);
+                //ctx.fillText("SIDE: " + direction, 10, obj.y + 3 * 25);
             }
 
 
