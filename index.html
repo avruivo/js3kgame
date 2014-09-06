@@ -311,9 +311,28 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         },
 
         lvl01: function () {
-            currentLevel.push(new lvlEvent(1, new Raft()));
-            currentLevel.push(new lvlEvent(2, new Shark()));
-            currentLevel.push(new lvlEvent(3, new Fish()));
+
+            var lessThan = Math.random() < .5;
+
+            var side1 = lessThan ? "R" : "L";
+            var side2 = side1 == "R" ? "L" : "R";
+
+            currentLevel.push(new lvlEvent(0, new Raft()));
+            currentLevel.push(new lvlEvent(3, new Shark(null, side1)));
+            currentLevel.push(new lvlEvent(6, new Shark(null, side1)));
+
+            currentLevel.push(new lvlEvent(10, new Fish()));
+
+
+            currentLevel.push(new lvlEvent(12, new Shark(null, side2)));
+            currentLevel.push(new lvlEvent(13, new Fish()));
+            currentLevel.push(new lvlEvent(14, new Shark(null, side2)));
+
+            currentLevel.push(new lvlEvent(16, new Fish()));
+
+
+            currentLevel.push(new lvlEvent(17, new Shark()));
+            currentLevel.push(new lvlEvent(18, new Shark()));
         }
     }
 
@@ -450,7 +469,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     }
 
     var Raft = function () {
-        this.shape = new Shape(500, 370, 184, 18, "#0000FF", 0, 0, "raft");
+        this.shape = new Shape(100, 370, 184, 18, "#0000FF", 0, 0, "raft");
         var that = this;
         this.mage = new Mage(this.shape);
         this.spawn = function () {
@@ -474,12 +493,13 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         }
     }
 
-    var Shark = function (hp) {
-        if (hp == undefined) hp = 3;
+    var Shark = function (hp, spawnSide) {
+        if (hp == undefined || hp == null) hp = 3;
         this.health = hp;
         this.shape = gen();
         this.attackIntervals = [];
         this.drawBlast = false;
+        this.spawnSide = spawnSide;
         var that = this;
 
         var attack1Dps = 1;
@@ -535,9 +555,16 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         }
 
         function gen() {
-            var spawnX, spawnVx = null;
+            var spawnX, spawnVx, spawnY = null;
             var spanInLeftSide = Math.random() < .5;
             //logEveryFrameX("spanInLeftSide: " + spanInLeftSide);
+
+            if (that != undefined) {
+                if (that.spawnSide != undefined && that.spawnSide != null) {
+                    spanInLeftSide = (spawnSide == "L");
+                }
+            }
+
             if (spanInLeftSide) {
                 spawnX = -65;
                 spawnVx = Constants.SPEED_NORMAL;
@@ -547,9 +574,11 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                 spawnVx = -Constants.SPEED_NORMAL;
             }
 
+            spawnY = 340 + Math.random() * 10;
+
             //bool spanInLeftSide;
             //int delay
-            return new Shape(spawnX, 350, 150, 65, "#0000FF", spawnVx, 0, "shark" + shapeList.length);
+            return new Shape(spawnX, spawnY, 150, 65, "#0000FF", spawnVx, 0, "shark" + shapeList.length);
         }
 
 
@@ -629,7 +658,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         }
 
         this.kill = function () {
-            if(this.isCaught)
+            if (this.isCaught)
                 fishToEat++;
 
             var pos = shapeList.indexOf(that);
@@ -748,8 +777,12 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         if (hud.health <= 0) {
             window.clearExtraIntervals(intervals);
             //funcStopLoop(intervals[0]);
-            alert("Game Over!");
-            gameInit();
+            var playAgain = confirm("Game Over! You survived " + currentSeconds() + " seconds!")
+            if (playAgain)
+                gameInit();
+            else {
+                funcStopLoop(intervals[0]);
+            }
             //console.log("Game Over!");
         }
 
@@ -835,7 +868,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         var shape = iShape.shape;
 
         if (shape.name.lastIndexOf("fish", 0) === 0) {
-            var playerMiddleX = this.magePlayer.shape.x + (this.magePlayer.shape.w / 2); 
+            var playerMiddleX = this.magePlayer.shape.x + (this.magePlayer.shape.w / 2);
             var playerMiddleY = this.magePlayer.shape.y + (this.magePlayer.shape.h / 2);
 
             var diff = shape.x - playerMiddleX;
@@ -846,7 +879,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                     //iShape.kill();
                 }
                 else {
-                    
+
                     var signalY = this.magePlayer.shape.y < shape.y ? -1 : 1;
                     shape.vy = signalY * speedCaught;
 
@@ -1022,6 +1055,8 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             ctx.fillText(strengthTxt, 10, y + 25);
 
             ctx.fillText("FishToEat: " + fishToEat, 10, y + 2 * 25);
+
+            ctx.fillText("Time: " + currentSeconds(), c.width - 130, y);
 
             if (magePlayer != null && magePlayer != undefined) {
                 var direction = "->";
