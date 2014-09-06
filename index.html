@@ -116,18 +116,37 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
             //left
             if (c == 37) {
-                this.magePlayer.direction = "L";
-                this.magePlayer.shape.vx = -d * 2;
+                if (this.magePlayer.direction != "L")
+                    this.magePlayer.direction = "L";
+                else
+                    this.magePlayer.shape.vx = -d * 2;
             }
 
             //right
             if (c == 39) {
-                this.magePlayer.direction = "R";
-                this.magePlayer.shape.vx = d * 2;
+                if (this.magePlayer.direction != "R")
+                    this.magePlayer.direction = "R";
+                else
+                    this.magePlayer.shape.vx = d * 2;
+            }
+
+            //key 1
+            if (c == 49) {
+                earthSpellLogic();
+            }
+
+            //key 2
+            if (c == 50) {
+                airSpellLogic();
+            }
+
+            //key 3
+            if (c == 51) {
+                fireSpellLogic();
             }
 
             if (c == 38) keys.u1 = d; //up
-            
+
             if (c == 40) keys.d1 = d; //down
 
             if (c == 65 || c == 81) keys.l2 = d; //a/q
@@ -172,25 +191,47 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         }, false);
 
         document.getElementById("fire1").addEventListener('click', function () {
-            if (magePlayer != null && magePlayer != undefined) {
-                magePlayer.castSpell(3);
-                lockoutSubmit(this, 1000);
-            }
+            fireSpellLogic();
         }, false);
 
         document.getElementById("air1").addEventListener('click', function () {
-            if (magePlayer != null && magePlayer != undefined) {
-                magePlayer.castSpell(2);
-                lockoutSubmit(this, 5000);
-            }
+            airSpellLogic();
         }, false);
 
         document.getElementById("earth1").addEventListener('click', function () {
-            if (magePlayer != null && magePlayer != undefined) {
-                magePlayer.castSpell(1);
-                lockoutSubmit(this, 5000);
-            }
+            earthSpellLogic();
         }, false);
+
+        function fireSpellLogic() {
+            if (magePlayer != null && magePlayer != undefined) {
+                var btn = document.getElementById("fire1");
+                if (!btn.disabled) {
+                    magePlayer.castSpell(3);
+                    lockoutSubmit(btn, 1000);
+                }
+            }
+        }
+
+        function airSpellLogic() {
+            if (magePlayer != null && magePlayer != undefined) {
+                var btn = document.getElementById("air1");
+                if (!btn.disabled) {
+                    magePlayer.castSpell(2);
+                    lockoutSubmit(btn, 5000);
+                }
+
+            }
+        }
+
+        function earthSpellLogic() {
+            if (magePlayer != null && magePlayer != undefined) {
+                var btn = document.getElementById("earth1");
+                if (!btn.disabled) {
+                    magePlayer.castSpell(1);
+                    lockoutSubmit(btn, 5000);
+                }
+            }
+        }
 
         animFrame = null; // TODO: improve this for other browsers
         var intervalId = null;
@@ -279,6 +320,10 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
     var Constants = {
         PLAYER_MAX_HP: 6,
+        SHARK_MAX_HP: 3,
+        SPEED_NORMAL: 1,
+        SPEED_ENRAGED: 2
+
     }
 
     var NPC = {
@@ -457,6 +502,16 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         }
 
         this.takeDps = function (dps) {
+
+            console.log("this.health: " + this.health + "; this.shape.vx: " + this.shape.vx);
+            if (this.health == Constants.SHARK_MAX_HP && Math.abs(this.shape.vx) == Constants.SPEED_NORMAL) {
+                var signal = 1;
+                if (magePlayer.shape.x < that.shape.x)
+                    signal = -1;
+
+                this.shape.vx = signal * Constants.SPEED_ENRAGED;
+            }
+
             var newHp = this.health - dps;
             this.health = newHp > 0 ? newHp : 0;
             return this.health;
@@ -474,11 +529,11 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             //logEveryFrameX("spanInLeftSide: " + spanInLeftSide);
             if (spanInLeftSide) {
                 spawnX = -65;
-                spawnVx = 1;
+                spawnVx = Constants.SPEED_NORMAL;
             }
             else {
                 spawnX = 700;
-                spawnVx = -1;
+                spawnVx = -Constants.SPEED_NORMAL;
             }
 
             //bool spanInLeftSide;
@@ -496,7 +551,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
                 var attackCastTime = 2 * 1000; //2secs
                 var castMethod = function () {
-                    
+
                     var isStillCollided = doCollide(that.shape, enemy.shape);;
                     console.log('stillCollided: ' + isStillCollided);
                     if (isStillCollided)
@@ -508,7 +563,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                         if (enemy.shape.x < that.shape.x)
                             signal = -1;
 
-                        that.shape.vx = signal * 2;
+                        that.shape.vx = signal * Constants.SPEED_ENRAGED;
                         _enemy = null;
                         return false;
                     }
@@ -737,6 +792,10 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         //ctx.fillRect(166, 240, 85, 130);
 
         //ctx.globalAlpha = 1;
+    }
+
+    function drawBlast(x, y) {
+
     }
 
     function moveShape(iShape, canvas) {
