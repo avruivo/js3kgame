@@ -225,7 +225,6 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
         }
         intervals.push(intervalId);
-        console.log("INTERVALID: " + intervalId);
         gameInit();
     }
 
@@ -305,7 +304,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         }
 
         this.gotHit = function (hitFrom) {
-            console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
+            //console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
         };
 
         this.hitWith = function (target) {
@@ -415,7 +414,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         }
 
         this.gotHit = function (hitFrom) {
-            console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
+            //console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
         };
 
         this.hitWith = function (target) {
@@ -441,14 +440,12 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
         //OVERRIDE
         this.spawn = function () {
-            console.log(that.shape);
             shapeList.push(that);
-
-            logEveryFrameX("I just spawned " + shapeList);
+            //logEveryFrameX("I just spawned " + shapeList);
         }
 
         this.gotHit = function (hitFrom) {
-            console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
+            //console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
         };
 
         this.hitWith = function (target) {
@@ -467,7 +464,6 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
         this.kill = function () {
             var pos = shapeList.indexOf(that);
-            console.log("Going to kill: " + that.shape.name);
             killListIntervals(this.attackIntervals);
             shapeList.splice(pos, 1);
         }
@@ -475,7 +471,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         function gen() {
             var spawnX, spawnVx = null;
             var spanInLeftSide = Math.random() < .5;
-            logEveryFrameX("spanInLeftSide: " + spanInLeftSide);
+            //logEveryFrameX("spanInLeftSide: " + spanInLeftSide);
             if (spanInLeftSide) {
                 spawnX = -65;
                 spawnVx = 1;
@@ -494,12 +490,28 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
         function attack(enemy, dps) {
             if (_enemy == null) {
+                console.log("attack!");
                 _enemy = enemy;
                 that.shape.vx = 0;
 
                 var attackCastTime = 2 * 1000; //2secs
                 var castMethod = function () {
-                    enemy.takeDps(dps);
+                    
+                    var isStillCollided = doCollide(that.shape, enemy.shape);;
+                    console.log('stillCollided: ' + isStillCollided);
+                    if (isStillCollided)
+                        enemy.takeDps(dps);
+                    else {
+                        killListIntervals(that.attackIntervals);
+                        that.shape.isCollision = false;
+                        var signal = 1;
+                        if (enemy.shape.x < that.shape.x)
+                            signal = -1;
+
+                        that.shape.vx = signal * 2;
+                        _enemy = null;
+                        return false;
+                    }
                 };
                 //castMethod();
 
@@ -529,14 +541,13 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
         //OVERRIDE
         this.spawn = function () {
-            console.log(that.shape);
             shapeList.push(that);
 
-            logEveryFrameX("I just spawned " + shapeList);
+            //logEveryFrameX("I just spawned " + shapeList);
         }
 
         this.gotHit = function (hitFrom) {
-            console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
+            //console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
         };
 
         this.hitWith = function (target) {
@@ -549,14 +560,11 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
         this.kill = function () {
             var pos = shapeList.indexOf(that);
-            console.log("Going to kill: " + that.shape.name);
-
             shapeList.splice(pos, 1);
         }
 
         this.catch = function () {
             fishToEat++;
-            console.log("mage caught me");
             this.kill();
         }
 
@@ -568,7 +576,6 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
             var randomX = Math.floor(Math.random() * spawnDistance);
             var spawnX = Math.floor(c.width / spawnDistance) * randomX;
-            console.log("SPANW_X_FISH: " + spawnX + "(" + randomX + ")");
             //shapeList.push(new Shape(565, 200, 50, 65, "#0000FF", 0, 1, "fish"));
 
             return new Shape(spawnX, 305, 50, 65, "#0000FF", 0, spawnVy, "fish" + shapeList.length);
@@ -600,7 +607,6 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                 var intervalId = window.setInterval(method, attackCastTime);
                 intervals.push(intervalId);
                 if (iShape != undefined && iShape != null) {
-                    console.log(iShape);
                     iShape.attackIntervals.push(intervalId);
                 }
             }
@@ -622,7 +628,6 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     function killListIntervals(list) {
         if (list != null && list != undefined) {
             for (var i = 0; i < list.length; i++) {
-                console.log("going to kill shark intervals" + list[i]);
                 window.clearInterval(list[i]);
             }
         }
@@ -678,8 +683,6 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         while (currentLevel.length > 0
                 && currentLevel[0].spawnTime <= currentSeconds()) {
             var event = currentLevel.shift().event;
-            //console.log("currentLevel.length: " + currentLevel.length);
-            console.log("Going to spanw a " + event.shape.name);
             event.spawn(null);
 
         }
@@ -781,6 +784,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
             if (colided) {
                 iShape.hitWith(shapeList[i]);
+                //console.log("'" + shape.name + "' colidede with '" + shapeList[i].shape.name+ "'");
             }
 
             //if (flag)
@@ -827,7 +831,6 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
     function drawGame() {
         hud.draw();
-        //console.log("drawn!");
     }
 
 
@@ -982,7 +985,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             console.log('TODO');
         } else {
             window.clearInterval(loop2);
-            console.log(loop2);
+            //console.log(loop2);
         }
     }
 
