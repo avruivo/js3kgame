@@ -107,9 +107,9 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
     function init() {
         alert('Mr Elementualle has been in a deserter island for a couple of years. \nUnexpectedly he ran into a magic coconut which gave him magical powers that will help him escape from the island. \nPress:'
-+ '\n    "1"  - to fix the draft with your earth power;'
-+ '\n    "2"  - to catch a fish and gain some health;'
-+ '\n    "3"  - to attack the sharks;'
++ '\n    "1"  - to fix the raft, with your earth power, and gain some health;'
++ '\n    "2"  - to catch a fish, with your air power, and gain some health;'
++ '\n    "3"  - to attack the sharks, with your fire power;'
 + '\n    <=-  - to move left;'
 + '\n    -=>  - to move right.');
 
@@ -364,19 +364,19 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
     }
 
-    var NPC = {
-        spawn: function (timer) {
-            console.log("spawn from NPC");
-        },
+    //var NPC = {
+    //    spawn: function (timer) {
+    //        console.log("spawn from NPC");
+    //    },
 
-        kill: function () {
-            console.log('need to implement this method on child!');
-        },
+    //    kill: function () {
+    //        console.log('need to implement this method on child!');
+    //    },
 
-        action: function () {
-            console.log('need to implement this method on child!');
-        }
-    }
+    //    action: function () {
+    //        console.log('need to implement this method on child!');
+    //    }
+    //}
 
     var Mage = function (parent) {
         this.shape = gen(parent);
