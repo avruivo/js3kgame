@@ -106,7 +106,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     }
 
     function init() {
-        alert('Mr Elementualle has been in a deserter island for a couple of years. \nUnexpectedly he ran into a magic coconut which gave him magical powers that will help him escape from the island. \nPress:'
+        alert('Mr Elementualle has been in a deserter island for a couple of years, \nunexpectedly he ran into a magic coconut which gave him magical powers that will help him escape from the island. \nPress:'
 + '\n    "1"  - to fix the raft, with your earth power, and gain some health;'
 + '\n    "2"  - to catch a fish, with your air power, and gain some health;'
 + '\n    "3"  - to attack the sharks, with your fire power;'
@@ -517,7 +517,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         if (goesEnrage == undefined || goesEnrage == null) goesEnrage = false;
         if (hp == undefined || hp == null) hp = 3;
         this.health = hp;
-        
+
         this.attackIntervals = [];
         this.drawBlast = false;
         this.spawnSide = spawnSide;
@@ -577,7 +577,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                 if (pos > 1)
                     shapeList.splice(pos, 1);
             }, 1 * 1000);
-            
+
         }
 
         function gen() {
@@ -601,7 +601,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                 spawnVx = -Constants.SPEED_NORMAL;
             }
 
-            spawnY = 340 + Math.random() * 10;
+            spawnY = 340 + (Math.random() * 5) * 5;
 
             //bool spanInLeftSide;
             //int delay
@@ -694,9 +694,9 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                 magePlayer.healDps(2);
 
             var pos = shapeList.indexOf(that);
-            if(pos>1)
+            if (pos > 1)
                 shapeList.splice(pos, 1);
-            
+
 
             //console.log("fish killed! isCaught:" + this.isCaught);
         }
@@ -918,6 +918,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     function moveShape(iShape, canvas) {
         var speed = 1; //Math.random() * 2;
         var shape = iShape.shape;
+        var isRaft = (shape.name == "raft");
 
         if (shape.name.lastIndexOf("fish", 0) === 0) {
             var playerMiddleX = this.magePlayer.shape.x + (this.magePlayer.shape.w / 2);
@@ -944,27 +945,24 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                 iShape.kill();
                 return null;
             }
-        } else if (shape.name == "raft") {
+        } else if (isRaft) {
             shape.vx = this.magePlayer.shape.vx;
         }
 
+        var isRaftOrMage = isRaft || shape.name == "mage";
+        var movedShape = clippedMoveTo(iShape, isRaftOrMage);
 
-        var movedShape = new Shape(shape.x + speed * (shape.vx),
-            shape.y + speed * (shape.vy),
-            shape.w, shape.h, shape.fill, null, null, null);
-
-        //logEveryFrameX("withinX: " + isWithinXCanvas(movedShape, canvas))
         //check X boundaries
-        if (!isWithinXCanvas(movedShape, canvas)) {
-            shape.vx *= -1;
-            movedShape.x = shape.x + speed * (shape.vx);
-        }
+        //if (!isWithinXCanvas(movedShape, canvas)) {
+        //    shape.vx = 0;
+        //    movedShape.x = shape.x + speed * (shape.vx);
+        //}
 
-        //check Y boundaries
-        if (!isWithinYCanvas(movedShape, canvas)) {
-            shape.vy *= -1;
-            movedShape.y = shape.y + speed * (shape.vy);
-        }
+        ////check Y boundaries
+        //if (!isWithinYCanvas(movedShape, canvas)) {
+        //    shape.vy = 0;
+        //    movedShape.y = shape.y + speed * (shape.vy);
+        //}
 
         shape.x = movedShape.x;
         shape.y = movedShape.y;
@@ -991,6 +989,53 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         //logEveryFrameX("name: " + shape.name + "; x:" + shape.x + "; y:" + shape.y, 100);
         iShape.shape = shape;
         return iShape;
+    }
+
+    function clippedMoveTo(iShape, forceClipping) {
+        var speed = 1;
+        var calculateNextPos = function (s) {
+            return new Shape(s.x + speed * (s.vx),
+                s.y + speed * (s.vy),
+                s.w, s.h, s.fill, s.vx, s.vy, s.name);
+        };
+
+        if (forceClipping) {
+            var clipShape = function (notClipped, toClip) {
+                if (toClip == undefined)
+                    toClip = notClipped;
+
+                var xDiff = 0;
+                if (notClipped.x < 0) {
+                    xDiff = notClipped.x - 0;
+                    var newX = toClip.x + xDiff;
+                    var raftMin = - (notClipped.x - toClip.x);
+                    if (newX < raftMin && toClip.name == "raft") {
+                        newX = raftMin;
+                    }else if (newX < 0 && toClip.name == "mage") {
+                        newX = 0;
+                    }
+
+                    toClip.x = newX;
+                } else if (notClipped.x + notClipped.w > canvas.width) {
+                    xDiff = canvas.width - (notClipped.w + notClipped.x);
+                    toClip.x = toClip.x + xDiff;
+                }
+                return toClip;
+            };
+
+            var clipped = null;
+            if (iShape.shape.name == "raft") {
+                var playerNextPos = calculateNextPos(this.magePlayer.shape);
+                var raftNextPos = calculateNextPos(iShape.shape);
+                clipped = clipShape(playerNextPos, raftNextPos);
+            } else {
+                var shapeNextPos = calculateNextPos(iShape.shape);
+                clipped = clipShape(shapeNextPos);
+            }
+            return clipped;
+        } else {
+            return calculateNextPos(iShape.shape);
+        }
     }
 
     function doCollide(s1, s2) {
