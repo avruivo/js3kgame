@@ -114,7 +114,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             for (var i = 0; i < list.length; i++) {
                 if (list[i].kill) {
                     list[i].kill();
-                    console.log("killing " + list[i].shape.name);
+                    //console.log("killing " + list[i].shape.name);
                 }
             }
         }
@@ -238,7 +238,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                 var btn = document.getElementById("air1");
                 if (!btn.disabled) {
                     magePlayer.castSpell(2);
-                    lockoutSubmit(btn, 5000);
+                    lockoutSubmit(btn, 1000);
                 }
 
             }
@@ -342,7 +342,19 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             var side1 = lessThan ? "R" : "L";
             var side2 = side1 == "R" ? "L" : "R";
 
+
             currentLevel.push(new lvlEvent(0, new Raft()));
+
+            /*
+            currentLevel.push(new lvlEvent(3, new Fish()));
+            currentLevel.push(new lvlEvent(6, new Fish()));
+            currentLevel.push(new lvlEvent(9, new Fish()));
+            currentLevel.push(new lvlEvent(12, new Fish()));
+            currentLevel.push(new lvlEvent(15, new Fish()));
+            currentLevel.push(new lvlEvent(18, new Fish()));
+            currentLevel.push(new lvlEvent(21, new Fish()));
+
+            return;*/
             currentLevel.push(new lvlEvent(3, new Shark(null, side1)));
             currentLevel.push(new lvlEvent(6, new Shark(null, side1)));
 
@@ -428,8 +440,14 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         }
 
         this.isSameDirection = function (otherShape) {
+            var isRaft = that.shape.name;
+            //var triz = this.shape.w /2;
             var res = otherShape.x >= this.shape.x && this.direction == "R"
-                    || otherShape.x <= this.shape.x && this.direction == "L";
+                    || otherShape.x <= this.shape.x && this.direction == "L"
+                    || (isRaft && (otherShape.x + otherShape.w) >= this.shape.x && otherShape.x <= (this.shape.x + this.shape.w) )
+
+            console.log("res: " + res);
+            //console.log("this.x - otherShape.x: " + (this.shape.x - otherShape.x) + " <= " + triz + "?");
             return res;
         }
 
@@ -710,8 +728,10 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         }
 
         this.kill = function () {
-            if (this.isCaught)
+            if (this.isCaught){
                 magePlayer.healDps(2);
+                fishToEat++;
+            }
 
             var pos = shapeList.indexOf(that);
             if (pos > 1)
@@ -733,7 +753,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
             var randomX = Math.floor(Math.random() * spawnDistance);
             var spawnX = Math.floor(c.width / spawnDistance) * randomX;
-            //shapeList.push(new Shape(565, 200, 50, 65, "#0000FF", 0, 1, "fish"));
+            //var spawnX = 20;
 
             return new Shape(spawnX, 305, 50, 65, "#FFFF00", 0, spawnVy, "fish" + currentLevel.length);
         }
@@ -1177,7 +1197,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             ctx.fillText(hpTxt, 10, y);
             //ctx.fillText(strengthTxt, 10, y + 25);
 
-            //ctx.fillText("FishToEat: " + fishToEat, 10, y + 2 * 25);
+            ctx.fillText("FishToEat: " + fishToEat, 10, y + 2 * 25);
 
             ctx.fillText("Time: " + currentSeconds(), c.width - 130, y);
 
