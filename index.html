@@ -80,20 +80,24 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     function clearExtraIntervals(intervalsArray) {
 
         for (var i = 0; i < intervalsArray.length; i++) {
-            if (i != 0) {
-                clearIntervalGbl(intervalsArray[i]);
-            }
+            //if (i != 0) {
+            clearIntervalGbl(intervalsArray[i]);
+            //}
         }
 
-        var mLoop = intervals[0];
-        intervals = [];
-        intervals.push(mLoop);
+        //var mLoop = intervals[0];
+        //intervals = [];
+        //intervals.push(mLoop);
     }
 
     function gameInit() {
+
+        killAllShapes(shapeList);
+        clearExtraIntervals(intervals);
         shapeList = [];
         currentLevel = [];
-        clearExtraIntervals(intervals);
+
+        startMainLoop();
         startTime = new Date(Date.now());
         xpto = -1;
         frameCount = 0;
@@ -103,6 +107,17 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         hud = null;
         fishToEat = 0;
         InitShapes();
+    }
+
+    function killAllShapes(list) {
+        if (list != undefined && list != null) {
+            for (var i = 0; i < list.length; i++) {
+                if (list[i].kill) {
+                    list[i].kill();
+                    console.log("killing " + list[i].shape.name);
+                }
+            }
+        }
     }
 
     function init() {
@@ -239,6 +254,13 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             }
         }
 
+        gameInit();
+
+
+    }
+
+
+    function startMainLoop() {
         animFrame = null; // TODO: improve this for other browsers
         var intervalId = null;
 
@@ -271,9 +293,7 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
             setIntervalGbl(mainloop, ONE_FRAME_TIME);
 
         }
-        gameInit();
     }
-
     function lockoutSubmit(button, cdValue) {
         //var oldValue = button.value;
         var oldText = button.innerText;
@@ -779,10 +799,11 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
     }
 
     function clearIntervalGbl(id) {
+        if (intervals != undefined && intervals != null) { }
         var pos = intervals.indexOf(id);
-        if (pos >= 0)
+        if (pos > 0) {
             intervals.splice(pos, 1);
-
+        }
         window.clearInterval(id);
     }
 
@@ -826,8 +847,9 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         ctx.clearRect(0, 0, c.width, c.height);
 
         if (hud.health <= 0) {
+            funcStopLoop(intervals[0]);
             clearExtraIntervals(intervals);
-            //funcStopLoop(intervals[0]);
+            currentLevel = null;
             var playAgain = confirm("Game Over! You survived " + currentSeconds() + " seconds!")
             if (playAgain)
                 gameInit();
@@ -839,11 +861,12 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
         }
 
         //START LOGIC:
-        while (currentLevel.length > 0
-                && currentLevel[0].spawnTime <= currentSeconds()) {
-            var event = currentLevel.shift().event;
-            event.spawn(null);
-
+        if (currentLevel != null) {
+            while (currentLevel.length > 0
+                    && currentLevel[0].spawnTime <= currentSeconds()) {
+                var event = currentLevel.shift().event;
+                event.spawn(null);
+            }
         }
 
         /*
@@ -1008,10 +1031,10 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
                 if (notClipped.x < 0) {
                     xDiff = notClipped.x - 0;
                     var newX = toClip.x + xDiff;
-                    var raftMin = - (notClipped.x - toClip.x);
+                    var raftMin = -(notClipped.x - toClip.x);
                     if (newX < raftMin && toClip.name == "raft") {
                         newX = raftMin;
-                    }else if (newX < 0 && toClip.name == "mage") {
+                    } else if (newX < 0 && toClip.name == "mage") {
                         newX = 0;
                     }
 
