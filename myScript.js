@@ -1,25 +1,7 @@
-/*
-    if (typeof String.prototype.startsWith != 'function') {
-        // see below for better implementation!
-        String.prototype.startsWith = function (str) {
-            return this.indexOf(str) == 0;
-        };
-    }
-    */
-
-
-
 function clearExtraIntervals(intervalsArray) {
-
     for (var i = 0; i < intervalsArray.length; i++) {
-        //if (i != 0) {
         clearIntervalGbl(intervalsArray[i]);
-        //}
     }
-
-    //var mLoop = intervals[0];
-    //intervals = [];
-    //intervals.push(mLoop);
 }
 
 function gameInit() {
@@ -30,13 +12,11 @@ function gameInit() {
 
     startMainLoop();
     startTime = new Date(Date.now());
-    xpto = -1;
     frameCount = 0;
     color = "#FF0000";
-    //loop = null;
     c = document.getElementById('canvas');
     hud = null;
-    fishToEat = 0;
+    //fishToEat = 0;
     InitShapes();
 }
 
@@ -45,7 +25,6 @@ function killAllShapes(list) {
         for (var i = 0; i < list.length; i++) {
             if (list[i].kill) {
                 list[i].kill();
-                //console.log("killing " + list[i].shape.name);
             }
         }
     }
@@ -100,32 +79,6 @@ function init() {
         if (c == 51) {
             fireSpellLogic();
         }
-
-        //if (c == 38) keys.u1 = d; //up
-
-        //if (c == 40) keys.d1 = d; //down
-
-        //if (c == 65 || c == 81) keys.l2 = d; //a/q
-        //if (c == 90 || c == 87) keys.u2 = d; //z/w
-        //if (c == 83) keys.d2 = d; //s
-        //if (c == 68) keys.r2 = d; //d
-
-        //if (!d) {
-        //    if (c == 27) { //Escape
-        //        setState(INTRO);
-        //    }
-        //    if (c == 32) { //Scape
-        //        if (state == INTRO) {
-        //            introNext();
-        //        }
-        //    }
-
-        //    if (c == 82) { //R
-        //        if (state == INTRO || state == GAMEOVER) {
-        //            setState(GAME);
-        //        }
-        //    }
-        //}
     };
     document.onkeyup = function (e) {
         onkey(0, e);
@@ -133,18 +86,6 @@ function init() {
     document.onkeydown = function (e) {
         onkey(1, e);
     };
-
-
-    document.getElementById("stopLoop").addEventListener('click', function () {
-        funcStopLoop(intervals[0]);
-        //alert("clear:" + intervals[0]);
-
-    }, false);
-
-    document.getElementById("restartGame").addEventListener('click', function () {
-        alert("Game Restart!");
-        restartGame();
-    }, false);
 
     document.getElementById("fire1").addEventListener('click', function () {
         fireSpellLogic();
@@ -190,51 +131,17 @@ function init() {
     }
 
     gameInit();
-
-
 }
 
 
 function startMainLoop() {
-    animFrame = null; // TODO: improve this for other browsers
-    var intervalId = null;
-
-    if (animFrame !== null) {
-        var canvas = document.getElementById('canvas');//.get(0);
-
-        var isMozilla = false; //$.browser.mozilla
-        if (isMozilla) {
-            var recursiveAnim = function () {
-                mainloop();
-                animFrame();
-            };
-
-            // setup for multiple calls
-            window.addEventListener("MozBeforePaint", recursiveAnim, false);
-
-            // start the mainloop
-            animFrame();
-        } else {
-            var recursiveAnim = function () {
-                mainloop();
-                animFrame(recursiveAnim, canvas);
-            };
-
-            // start the mainloop
-            intervalId = animFrame(recursiveAnim, canvas);
-        }
-    } else {
-        var ONE_FRAME_TIME = 1000.0 / 60.0;
-        setIntervalGbl(mainloop, ONE_FRAME_TIME);
-
-    }
+    var ONE_FRAME_TIME = 1000.0 / 60.0;
+    setIntervalGbl(mainloop, ONE_FRAME_TIME);
 }
 function lockoutSubmit(button, cdValue) {
-    //var oldValue = button.value;
     var oldText = button.innerText;
 
     button.setAttribute('disabled', true);
-    button.value = '...processing...';
 
     setTimeout(function () {
         button.innerText = oldText;
@@ -247,7 +154,6 @@ function lockoutSubmit(button, cdValue) {
     };
 
     var interval = setIntervalGbl(intervalMethod, 1000); //update cooldown every sec
-
     setTimeout(function () {
         clearIntervalGbl(interval);
         button.value = oldText;
@@ -265,55 +171,28 @@ function showCooldown(obj, startTime, totalSeconds, oldText) {
 /* ---- NAMESPACES (+) ---- */
 var lvl = {
     init: function () {
-        //setInterval(function () { console.log("timerAvr: " + frameCount + " OR " + currentSeconds() + " seconds!" + new Date(Date.now()).getSeconds())}, 10*1000);
         hud = new Hud();
-        //hud.init();
     },
 
     lvl01: function () {
-        
+
         var ys1 = [new waveCfg(-75, 0, 1)];
         var ys2 = ys = [new waveCfg(-35, -200, .8), new waveCfg(0, -30, 1)];
         waves = { ys1: ys1, ys2: ys2 };
 
         var lessThan = Math.random() < .5;
-        //lessThan = true;
-
         var side1 = lessThan ? "R" : "L";
         var side2 = lessThan ? "L" : "R";
 
-        //console.log("lessThan:" + lessThan + " side1:" + side1 + "; side2:" + side2);
-
 
         currentLevel.push(new lvlEvent(0, new Raft()));
-
-        //currentLevel.push(new lvlEvent(1, new Fish()));
-        //currentLevel.push(new lvlEvent(3, new Fish()));
-        //currentLevel.push(new lvlEvent(5, new Fish()));
-        /*
-        currentLevel.push(new lvlEvent(3, new Fish()));
-        currentLevel.push(new lvlEvent(6, new Fish()));
-        currentLevel.push(new lvlEvent(9, new Fish()));
-        currentLevel.push(new lvlEvent(12, new Fish()));
-        currentLevel.push(new lvlEvent(15, new Fish()));
-        currentLevel.push(new lvlEvent(18, new Fish()));
-        currentLevel.push(new lvlEvent(21, new Fish()));
-
-        return;*/
-
-
-        //currentLevel.push(new lvlEvent(3, new Shark(null, side2)));
-
-
         currentLevel.push(new lvlEvent(3, new Shark(null, side1)));
         currentLevel.push(new lvlEvent(6, new Shark(null, side1)));
-
         currentLevel.push(new lvlEvent(10, new Fish()));
         currentLevel.push(new lvlEvent(13, new Shark(null, null, true)));
         currentLevel.push(new lvlEvent(16, new Shark(null, side2)));
         currentLevel.push(new lvlEvent(16, new Fish()));
         currentLevel.push(new lvlEvent(18, new Shark(null, side2)));
-
         currentLevel.push(new lvlEvent(20, new Shark(null, side1, true))); //9
         currentLevel.push(new lvlEvent(22, new Shark(null, side1, true)));
         currentLevel.push(new lvlEvent(23, new Fish()));
@@ -328,12 +207,9 @@ var lvl = {
 
         currentLevel.push(new lvlEvent(33, new Shark(null, side2)));
         currentLevel.push(new lvlEvent(34, new Fish()));
-
-        //currentLevel.push(new lvlEvent(16, new Fish()));
-
-
-        //currentLevel.push(new lvlEvent(17, new Shark()));
-        //currentLevel.push(new lvlEvent(18, new Shark()));
+        currentLevel.push(new lvlEvent(36, new Shark(null, side2)));
+        currentLevel.push(new lvlEvent(37, new Shark(null, side2)));
+        currentLevel.push(new lvlEvent(37, new Fish()));
     }
 
 }
@@ -345,20 +221,6 @@ var Constants = {
     SPEED_NORMAL: 1,
     SPEED_ENRAGED: 2
 }
-
-//var NPC = {
-//    spawn: function (timer) {
-//        console.log("spawn from NPC");
-//    },
-
-//    kill: function () {
-//        console.log('need to implement this method on child!');
-//    },
-
-//    action: function () {
-//        console.log('need to implement this method on child!');
-//    }
-//}
 
 var Mage = function (parent) {
     this.shape = gen(parent);
@@ -377,10 +239,6 @@ var Mage = function (parent) {
         target.gotHit(this);
     }
 
-    //this.takeDps = function (dps) {
-    //    hud.health -= dps;
-    //}
-
     this.healDps = function (dps) {
         var newHp = hud.health + dps;
         if (newHp > Constants.PLAYER_MAX_HP)
@@ -391,18 +249,13 @@ var Mage = function (parent) {
 
     this.isSameDirection = function (otherShape) {
         var isRaft = that.shape.name;
-        //var triz = this.shape.w /2;
         var res = otherShape.x >= this.shape.x && this.direction == "R"
                 || otherShape.x <= this.shape.x && this.direction == "L"
                 || (isRaft && (otherShape.x + otherShape.w) >= this.shape.x && otherShape.x <= (this.shape.x + this.shape.w))
-
-        console.log("res: " + res);
-        //console.log("this.x - otherShape.x: " + (this.shape.x - otherShape.x) + " <= " + triz + "?");
         return res;
     }
 
     this.castSpell = function (attackId) {
-        //alert(attackId);
         switch (attackId) {
             case 1: //earth, fix boat
                 var dps = 1;
@@ -411,15 +264,11 @@ var Mage = function (parent) {
                 }, 0, null, this);
                 break;
             case 2: //air, get fish
-                //castGetFish();
                 cast(function () { getFish() }, 0, null, this);
-                ;
                 break;
             case 3: //fire, attack shark
-                //attackShark
                 var dps = 1;
                 cast(function () { attackShark(dps); }, 0, null, this);
-                ;
                 break;
             default:
                 ;
@@ -427,11 +276,9 @@ var Mage = function (parent) {
     }
 
     this.isCasting = false;
-
     var that = this;
 
     function gen(parentShape) {
-        //ctx.fillRect(166, 240, 85, 130);
         var mageW = 85;
         var mageH = 130;
         var parentCenter = Math.floor(parentShape.w / 2);
@@ -440,11 +287,6 @@ var Mage = function (parent) {
 
         return new Shape(mageX, parentShape.y - mageH, mageW, mageH, "#038EEF", parentShape.vx, parentShape.vy, "mage")
     }
-
-
-    //function castGetFish() {
-    //    setTimeout(function () { getFish(); }, 0.5 * 1000);
-    //}
 
     function getFish() {
         for (var i = 0; i < shapeList.length; i++) {
@@ -517,18 +359,14 @@ var Shark = function (hp, spawnSide, goesEnrage) {
     this.goesEnrage = goesEnrage;
     this.hasAttacked = false;
 
-
-
     var attack1Dps = 1;
     var _enemy = null;
     var that = this;
 
     this.shape = gen();
 
-    //OVERRIDE
     this.spawn = function () {
         shapeList.push(that);
-        //logEveryFrameX("I just spawned " + shapeList);
     }
 
     this.gotHit = function (hitFrom) {
@@ -574,18 +412,15 @@ var Shark = function (hp, spawnSide, goesEnrage) {
             if (pos > 1)
                 shapeList.splice(pos, 1);
         }, 1 * 1000);
-
     }
 
     function gen() {
         var spawnX, spawnVx, spawnY = null;
         var spanInLeftSide = Math.random() < .5;
-        //logEveryFrameX("spanInLeftSide: " + spanInLeftSide);
 
         if (that != undefined) {
             if (that.spawnSide != undefined && that.spawnSide != null) {
                 spanInLeftSide = (spawnSide == "L");
-                //console.log("override spawn with spawnInLeft: " + spanInLeftSide);
             }
         }
 
@@ -599,13 +434,8 @@ var Shark = function (hp, spawnSide, goesEnrage) {
         }
 
         spawnY = 340 + (Math.random() * 5) * 5;
-
-        //bool spanInLeftSide;
-        //int delay
         return new Shape(spawnX, spawnY, 150, 65, "#0000FF", spawnVx, 0, "shark" + currentLevel.length);
     }
-
-
 
     function attack(enemy, dps) {
         if (_enemy == null) {
@@ -618,7 +448,6 @@ var Shark = function (hp, spawnSide, goesEnrage) {
                     that.kill(); return false;
                 }
 
-                console.log(that.shape.name + " is attaking " + enemy.shape.name);
                 var isStillCollided = doCollide(that.shape, enemy.shape);
                 if (isStillCollided) {
                     enemy.takeDps(dps);
@@ -635,7 +464,6 @@ var Shark = function (hp, spawnSide, goesEnrage) {
                     return false;
                 }
             };
-            //castMethod();
 
             if (that.health > 0) {
                 enemy.takeDps(dps); //call first time
@@ -645,18 +473,6 @@ var Shark = function (hp, spawnSide, goesEnrage) {
             cast(castMethod, 1000, attackCastTime, that); //call in loop from second time forward
         }
     }
-
-    //function cast(method, attackCastTime) {
-    //    var castDelay = 1000; //1sec
-
-    //    var timeoutMethod = function () {
-    //        var intervalId = window.setInterval(method, attackCastTime);
-    //        intervals.push(intervalId);
-    //    };
-    //    setTimeout(timeoutMethod, castDelay);
-    //}
-
-
 }
 var Fish = function () {
     this.shape = gen();
@@ -666,23 +482,21 @@ var Fish = function () {
     var attack1Dps = 1;
     var _enemy = null;
 
-    //OVERRIDE
     this.spawn = function () {
         shapeList.push(that);
-
-        //logEveryFrameX("I just spawned " + shapeList);
     }
 
-    this.gotHit = function (hitFrom) {
-        //console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
-    };
+    //this.gotHit = function (hitFrom) {
+    //    //console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
+    //};
 
     this.hitWith = function (target) {
         //console.log('I("' + this.name + '") just hit "' + target.name + '"');
         target.gotHit(that);
-        if (target.shape.name == "raft") {
-            //attack(target, attack1Dps);
-        } else if (target.shape.name == "mage") {
+        //if (target.shape.name == "raft") {
+        //    //attack(target, attack1Dps);
+        //} else
+        if (target.shape.name == "mage") {
             if (that.isCaught)
                 that.kill();
         }
@@ -691,15 +505,12 @@ var Fish = function () {
     this.kill = function () {
         if (this.isCaught) {
             magePlayer.healDps(2);
-            fishToEat++;
+            //fishToEat++;
         }
 
         var pos = shapeList.indexOf(that);
         if (pos > 1)
-            shapeList.splice(pos, 1);
-
-
-        //console.log("fish killed! isCaught:" + this.isCaught);
+            shapeList.splice(pos, 1); 3
     }
 
     this.catch = function () {
@@ -714,24 +525,8 @@ var Fish = function () {
 
         var randomX = Math.floor(Math.random() * spawnDistance);
         var spawnX = Math.floor(c.width / spawnDistance) * randomX;
-        //var spawnX = 20;
-
         return new Shape(spawnX, 305, 50, 65, "#FFFF00", 0, spawnVy, "fish" + currentLevel.length);
     }
-
-    //function attack(enemy, dps) {
-    //    if (_enemy == null) {
-    //        _enemy = enemy;
-    //        that.shape.vx = 0;
-
-    //        var attackCastTime = 2 * 1000; //2secs
-    //        var castMethod = function () {
-    //            enemy.takeDps(dps);
-    //        };
-    //        //castMethod();
-    //        cast(castMethod, attackCastTime);
-    //    }
-    //}
 }
 
 function cast(method, castDelay, attackCastTime, iShape) {
@@ -744,8 +539,6 @@ function cast(method, castDelay, attackCastTime, iShape) {
         }
     }
 
-
-
     var timeoutMethod = function () {
         if (attackCastTime == undefined || attackCastTime == null) {
             method(); //call method
@@ -755,10 +548,7 @@ function cast(method, castDelay, attackCastTime, iShape) {
                 iShape.attackIntervals.push(intervalId);
             }
         }
-
-
     };
-
 
     setTimeout(function () {
         if (iShape != undefined && iShape != null) {
@@ -766,11 +556,8 @@ function cast(method, castDelay, attackCastTime, iShape) {
                 iShape.isCasting = false;
         };
     }, 1000);
-
-    //console.log("timeoutMethod:" + timeoutMethod);
     setTimeout(timeoutMethod, castDelay);
 }
-
 /* ---- NAMESPACES (-) ---- */
 
 function ChangeColor(val) {
@@ -804,39 +591,12 @@ function clearIntervalGbl(id) {
     window.clearInterval(id);
 }
 
-
 function InitShapes() {
-
-    /*
-    var arr = [];
-    arr.push(1);
-    arr.push(2);
-    arr.push(3);
-    arr.push(4);
-    console.log("arr:" + arr);
-    arr.shift();
-    console.log("arr.poped; arr: " + arr);
-    */
-
     lvl.init();
     lvl.lvl01(); //INIT level 01;
-    //shapeList.push(new Shape(10, 0, 25, 25, "#00FFFF", 1, 1, "sUm"));
-    //shapeList.push(new Shape(0, 40, 39, 25, "#00FF00", -1, -1, "sDois"));
-    //shapeList.push(new Shape(0, 80, 100, 25, "#0000FF", -1, 1, "sTres"));
-
-
-
-    //shapeList.push(new Shape(600, 350, 150, 65, "#0000FF", 1, 0, "shark"));
-    //shapeList.push(new Shape(565, 200, 50, 65, "#0000FF", 0, 1, "fish"));
-
-    /*
-    var xpto = new Shark();
-    xpto.NPC.spawn(null);
-    */
 }
 
 function updateGame() {
-    //logEveryFrameX(Math.random()<.5, 100);
     frameCount++;
     var ctx = c.getContext("2d");
     ctx.globalAlpha = opacity;
@@ -848,10 +608,9 @@ function updateGame() {
         funcStopLoop(intervals[0]);
         clearExtraIntervals(intervals);
         currentLevel = null;
-        
 
         var method = function () {
-            var playAgain = confirm("Game Over! You survived " + currentSeconds() + " seconds!")
+            var playAgain = confirm("Game Over! You survived " + currentSeconds() + " seconds! Play again?")
             if (playAgain)
                 restartGame();
             else {
@@ -861,7 +620,6 @@ function updateGame() {
         }
 
         setTimeout(method, 500);
-        //console.log("Game Over!");
     }
 
     //START LOGIC:
@@ -873,14 +631,6 @@ function updateGame() {
         }
     }
 
-    /*
-    var imgBg = new Image();
-    imgBg.src = "thumb01.png";
-    imgBg.onload = function () {
-        ctx.drawImage(imgBg, 0, 0);
-    }
-    */
-
     //draw waves before NCPs
     Draw.wavesPattern(ctx, waves.ys1);
 
@@ -889,37 +639,16 @@ function updateGame() {
         var iShape = moveShape(shapeList[i], c);
         if (iShape != null) {
             currShape = iShape.shape;
-
             if (showBoundingBoxs) {
                 ctx.fillStyle = getFill(currShape);
                 ctx.fillRect(currShape.x, currShape.y, currShape.w, currShape.h);
-
             }
             write(iShape);
-
-            //if (iShape.shape.name == "mage") {
-
-            //}
         }
     }
 
     //draw waves after NPSc
     Draw.wavesPattern(ctx, waves.ys2);
-
-
-    /*
-    var newXpto = xpto++;
-    ctx.fillStyle = color;
-    if (xpto > 480)
-    {
-        color = ChangeColor(xpto);
-        xpto = -1;
-    }
-    ctx.fillRect(0, 0, xpto++, 75);
-    */
-
-    debug()
-
 }
 
 function isScrollLeft() {
@@ -934,31 +663,12 @@ var waveCfg = function (y, offset, alpha) {
     this.originalOffset = offset;
 }
 
-function debug() {
-    //var ctx = c.getContext("2d");
-    //ctx.globalAlpha = 0.5;
-    //ctx.fillStyle = "Green";
-    //ctx.fillRect(0, 220, c.width, 60);
-
-    //mage
-    //ctx.fillRect(166, 240, 85, 130);
-
-    //ctx.globalAlpha = 1;
-}
-
 function drawBlast(x, y) {
-    //var ctx = c.getContext("2d");
-    //ctx.fillStyle = "White";
-    //ctx.fillText("BLAST!!!", x + 40, y + 20);
-
-
-
-    //return;
     var radius = 40;
     var context = c.getContext("2d");
     context.globalAlpha = .7;
     context.beginPath();
-   
+
     var signal = 1;
     if (magePlayer.direction == "R") {
         signal = -1;
@@ -974,7 +684,7 @@ function drawBlast(x, y) {
 }
 
 function moveShape(iShape, canvas) {
-    var speed = 1; //Math.random() * 2;
+    var speed = 1;
     var shape = iShape.shape;
     var isRaft = (shape.name == "raft");
 
@@ -983,7 +693,6 @@ function moveShape(iShape, canvas) {
         var playerMiddleY = this.magePlayer.shape.y + (this.magePlayer.shape.h / 2);
 
         var diff = shape.x - playerMiddleX;
-        //console.log("shape.y " + shape.y + "; playerMiddleY: " + playerMiddleY);
         if (iShape.isCaught) {
             var speedCaught = 14;
             if (Math.abs(shape.x - playerMiddleX) <= speedCaught + 5 && shape.y <= playerMiddleY) {
@@ -1010,18 +719,6 @@ function moveShape(iShape, canvas) {
     var isRaftOrMage = isRaft || shape.name == "mage";
     var movedShape = clippedMoveTo(iShape, isRaftOrMage);
 
-    //check X boundaries
-    //if (!isWithinXCanvas(movedShape, canvas)) {
-    //    shape.vx = 0;
-    //    movedShape.x = shape.x + speed * (shape.vx);
-    //}
-
-    ////check Y boundaries
-    //if (!isWithinYCanvas(movedShape, canvas)) {
-    //    shape.vy = 0;
-    //    movedShape.y = shape.y + speed * (shape.vy);
-    //}
-
     shape.x = movedShape.x;
     shape.y = movedShape.y;
 
@@ -1036,15 +733,7 @@ function moveShape(iShape, canvas) {
             iShape.hitWith(shapeList[i]);
             //console.log("'" + shape.name + "' colidede with '" + shapeList[i].shape.name+ "'");
         }
-
-        //if (flag)
-        //    logEveryFrameX("checking coll between '"+shape.name+"' and '"+shapeList[i].name+"'");
-
-        //if (shape.isCollision)
-        //  logEveryFrameX("'" + shape.name + "' colided with '" + shapeList[i].name + "'");
     }
-
-    //logEveryFrameX("name: " + shape.name + "; x:" + shape.x + "; y:" + shape.y, 100);
     iShape.shape = shape;
     return iShape;
 }
@@ -1097,7 +786,6 @@ function clippedMoveTo(iShape, forceClipping) {
 }
 
 function doCollide(s1, s2) {
-
     if (s1.x < s2.x + s2.w &&
         s1.x + s1.w > s2.x &&
         s1.y < s2.y + s2.h &&
@@ -1105,31 +793,11 @@ function doCollide(s1, s2) {
         return true;
     }
     return false;
-
-
-    var xd = s1.x - s2.x;
-    var yd = s1.y - s2.y;
-    var wt = s2.w + s1.w;
-
-    var c = document.getElementById('canvas');
-    var context = c.getContext("2d");
-    context.beginPath();
-    context.moveTo(xd, yd);
-    context.lineTo(yd, wt);
-    context.lineTo(wt, xd);
-    context.stroke();
-
-    //context.fillStyle = "#B97A57";
-    //context.fillRect(xd, yd, wt, s1.h + s2.h);
-
-
-    return (xd * xd + yd * yd <= wt * wt);
 }
 
 function drawGame() {
     hud.draw();
 }
-
 
 function getFill(shape) {
     if (shape.isCollision && false) {
@@ -1162,29 +830,19 @@ function write(iShape) {
     var shape = iShape.shape;
     var ctx = c.getContext("2d");
     ctx.fillStyle = "Red";
-
-
     //ctx.fillText(shape.name, shape.x, shape.y); //write npc label
 
     if (shape.name.lastIndexOf("shark", 0) === 0) {
         ctx.fillStyle = "White";
         //ctx.fillText(iShape.health, shape.x + 40, shape.y + 20); //write npc HP
 
-        Draw.shark(ctx, iShape); // 100.000000, 1000.000000);
-
-        //console.log(iShape.drawBlast);
+        Draw.shark(ctx, iShape);
         if (iShape.drawBlast) {
             drawBlast(shape.x + shape.w / 2, shape.y + 20);
         }
 
     } else if (iShape.shape.name == "mage") {
         Draw.mage(ctx, iShape);
-        if (true) {; }
-        else if (this.magePlayer.direction == "R") {
-            ctx.fillText("=>", shape.x + (shape.w / 2) - 15, shape.y + 30)
-        } else {
-            ctx.fillText("<=", shape.x + (shape.w / 2) - 15, shape.y + 30)
-        }
     }
     else if (shape.name.lastIndexOf("fish", 0) === 0) {
         Draw.fishJumping(ctx, iShape.shape);
@@ -1194,13 +852,6 @@ function write(iShape) {
     }
 }
 
-function logPos(shape, logIt) {
-    var msg = "name:" + shape.name + " x: " + shape.x + "; y: " + shape.y;
-    if (logIt)
-        console.log(msg);
-    return msg;
-}
-
 function Hud(hp, str) {
     if (hp == undefined) {
         hp = Constants.PLAYER_MAX_HP;
@@ -1208,10 +859,6 @@ function Hud(hp, str) {
     if (str == undefined)
         str = 10;
 
-    //this.init = function () {
-    //        strength = 10;
-    //        draftHealth = 6;
-    //}
     this.strength = str;
     this.health = hp;
     this.draw = function () {
@@ -1219,64 +866,20 @@ function Hud(hp, str) {
         ctx.font = '15pt Verdana';
         ctx.fillStyle = "Black";
         var hpTxt = "Health:     ";
-        var strengthTxt = "Strength: " + this.strength;
-
-
-
 
         var y = 30;
         ctx.fillText(hpTxt, 10, y);
-        //ctx.fillText(strengthTxt, 10, y + 25);
-
-
-
         ctx.fillText("Time: " + currentSeconds(), c.width - 130, y);
 
         if (magePlayer != null && magePlayer != undefined) {
-            //ctx.fillText("IsCasting: " + magePlayer.isCasting, 10, y + 2 * 25);
             var direction = "->";
             if (magePlayer.direction == "L")
                 direction = "<-";
-
-            //ctx.fillText("SIDE: " + direction, 10, y + 3 * 25);
         }
-        //debugHud(this);
-
     }
-
-    function debugHud(obj) {
-        var ctx = c.getContext("2d");
-        ctx.fillText("FishToEat: " + fishToEat, 10, obj.y + 2 * 25);
-
-        if (magePlayer != null && magePlayer != undefined) {
-            var direction = "->";
-            if (magePlayer.direction == "L")
-                direction = "<-";
-
-            //ctx.fillText("SIDE: " + direction, 10, obj.y + 3 * 25);
-        }
-
-
-    }
-
-    //this.updateHud = function(hp, str) {
-    //    if(hp != undefined && hp != null){
-    //        this.drafthealth = hp;
-    //    }
-    //    if(str != undefined && str != null)
-    //        strength = str;
-    //};
-
-    //function updateHud(hp, str) {
-    //    if (hp != undefined && hp != null)
-    //        draftHealth = hp;
-    //    if (str != undefined && str != null)
-    //        strength = str;
-    //}
 }
 
 function isWithinXCanvas(shape, canvas) {
-    //logEveryFrameX("X:{0}; x >= 0?: {1}; x <= canvas.width({2}): {3}".format(shape.x, thi, shape.y, canvas.height));
     return shape.ignoreRightBottomCanvas || (shape.x >= 0 && shape.x + shape.w <= canvas.width);
 }
 
@@ -1288,16 +891,9 @@ function isWithinCanvas(shape, canvas) {
     return isWithinXCanvas(shape, canvas) && isWithinYCanvas(shape, canvas);
 }
 
-
-
 var mainloop = function () {
     updateGame();
     drawGame();
-
-    //if (this.magePlayer != undefined) {
-    //    var msg = logPos(shapeList.length, false);
-    //    logEveryFrameX(msg, 100);
-    //}
 };
 
 var animFrame = window.requestAnimationFrame ||
@@ -1307,14 +903,11 @@ var animFrame = window.requestAnimationFrame ||
         window.msRequestAnimationFrame ||
         null;
 
-
-
 function funcStopLoop(loop2) {
     if (animFrame !== null) {
-        console.log('TODO');
+        //console.log('TODO'); //improve
     } else {
         clearIntervalGbl(loop2);
-        //console.log(loop2);
     }
 }
 
@@ -1353,7 +946,6 @@ function ctxtransform(var1, var2, var3, var4, var5, var6, ctx, shape, index) {
     ctxTransform(var1, var2, var3, var4, var5, var6, ctx, shape, index);
 }
 
-
 function ctxTransform(var1, var2, var3, var4, var5, var6, ctx, shape, index) {
     var fix = { x: 0, y: 0 };
     var aux = vectorize(shape, var5);
@@ -1371,7 +963,7 @@ function ctxTransform(var1, var2, var3, var4, var5, var6, ctx, shape, index) {
     }
 
     var auxX = shape.x + aux.moveHoriz + fix.x;
-    var auxY = var6 + shape.y + fix.y;// - (shape.h / 2);
+    var auxY = var6 + shape.y + fix.y;
 
     ctx.transform(var1 * aux.scaleHoriz, var2, var3, var4, auxX, auxY);
 }
@@ -1396,7 +988,7 @@ var Draw = {
     sharkSwimming: function (ctx, shape) {
         // #layer1
         ctx.save();
-        ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -415.080350, -494.795910, ctx, shape, 0);
+        ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -415.080350, -494.795910, ctx, shape, 0); //special call
 
         // #g3420
         ctx.save();
@@ -1498,7 +1090,7 @@ var Draw = {
     sharkAttacking: function (ctx, shape) {
         // #layer1
         ctx.save();
-        ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -274.318500, -447.940380, ctx, shape);
+        ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -274.318500, -447.940380, ctx, shape);//special call
 
         // #g3296
         ctx.save();
@@ -1701,7 +1293,7 @@ var Draw = {
     mageStanding: function (ctx, shape) {
         // #layer1
         ctx.save();
-        ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -298.218720, -456.785650, ctx, shape);
+        ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -298.218720, -456.785650, ctx, shape);//special call
 
         // #g3420
         ctx.save();
@@ -1838,7 +1430,7 @@ var Draw = {
     mageCasting: function (ctx, shape) {
         // #layer1
         ctx.save();
-        ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -329.988120, -403.600360, ctx, shape);
+        ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -329.988120, -403.600360, ctx, shape);//special call
 
         // #g3420
         ctx.save();
@@ -2007,8 +1599,7 @@ var Draw = {
     fishJumping: function (ctx, shape) {
         // #layer1
         ctx.save();
-        ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -346.124430, -470.472060, ctx, shape);
-        //ctx.transform(1.000000, 0.000000, 0.000000, 1.000000, -346.124430, -470.472060);
+        ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -346.124430, -470.472060, ctx, shape);//special call
 
         // #g3367
         ctx.save();
@@ -2191,7 +1782,7 @@ var Draw = {
     raft: function (ctx, shape) {
         // #layer1
         ctx.save();
-        ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -271.853800, -583.231080, ctx, shape);
+        ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -271.853800, -583.231080, ctx, shape);//special call
 
         // #g3420
         ctx.save();
@@ -2380,18 +1971,12 @@ var Draw = {
     wavesPattern: function (ctx, ys) {
         for (var i = 0; i < ys.length; i++) {
             for (var j = 0; j < 14; j++) {
-
-                //var offset = ys[i].offset;
-
                 if (frameCount % 10 == 0) {
                     var signal;
                     if (ys[i].scrollLeft)
                         signal = 1;
                     else
                         signal = -1;
-
-                    var xxx
-                    console.log("Math.abs(ys[i].offset - ys[i]):" + Math.abs(ys[i].offset - ys[i].originalOffset));
 
                     if (Math.abs(ys[i].offset - ys[i].originalOffset) > 80)
                         ys[i].offset = ys[i].originalOffset;
@@ -2412,22 +1997,17 @@ var Draw = {
     },
 
     waves: function (ctx, x, y, offsetX, scale, alpha) {
-
         ctx.globalAlpha = alpha;
         var grd = ctx.createLinearGradient(80, 0, 80, 140);
         grd.addColorStop(0, "#0099ff");
         grd.addColorStop(1, "white");
-
         ctx.fillStyle = grd;
-
 
         // #layer1
         var shape = { x: x, y: y, name: 'wave' };
         ctx.save();
-        //ctx.transform(scale, 0.000000, 0.000000, 1.000000, 0, 0);
 
         ctx.transform(1.00000, 0.000000, 0.000000, 1.000000, -407.952300 + 80 * x + offsetX - currentSeconds(), -545.130710 + 408 + y);
-        //ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -407.952300, -545.130710, ctx, shape);
 
         // #g3420
         ctx.save();
@@ -2461,7 +2041,7 @@ var Draw = {
         ctx.restore();
     },
 
-    sky: function(ctx){
+    sky: function (ctx) {
         ctx.globalAlpha = .9;
         var grd = ctx.createLinearGradient(80, 0, 80, 140);
         grd.addColorStop(0, "#0099ff");
@@ -2471,19 +2051,13 @@ var Draw = {
         ctx.fillRect(0, 0, c.width, c.height);
     },
 
-    hpBar: function(ctx){
-    //ctx.globalAlpha = .8;
-    //var grd = ctx.createLinearGradient(80, 0, 80, 140);
-    //grd.addColorStop(0, "red");
-    //grd.addColorStop(1, "white");
+    hpBar: function (ctx) {
+        ctx.fillStyle = "red";
+        for (var i = 0; i < hud.health; i++) {
+            ctx.fillRect(100 + i * 25, 16, 15, 15);
+        }
 
-    ctx.fillStyle = "red";
-
-    for (var i = 0; i < hud.health; i++) {
-        ctx.fillRect(100 + i*25, 16, 15, 15);
     }
-    
-}
 }
 
 function restartGame() {
