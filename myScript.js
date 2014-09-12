@@ -1,3 +1,7 @@
+window.onload = function () {
+    init();
+}
+
 function clearExtraIntervals(intervalsArray) {
     for (var i = 0; i < intervalsArray.length; i++) {
         clearIntervalGbl(intervalsArray[i]);
