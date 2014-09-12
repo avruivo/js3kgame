@@ -52,30 +52,6 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
     /* ---- GLOBALS (-) ----- */
 
-    /*
-    if (typeof String.prototype.startsWith != 'function') {
-        // see below for better implementation!
-        String.prototype.startsWith = function (str) {
-            return this.indexOf(str) == 0;
-        };
-    }
-    */
-
-    c.onclick = function (e) {
-
-        rect = c.getBoundingClientRect();
-        mouseX = event.clientX /*+ document.body.scrollLeft */ - rect.left;
-        mouseY = event.clientY /*+ document.body.scrollTop */ - rect.top;
-        
-        console.log("x: " + mouseX + "; y: " + mouseY);
-
-        var x = Math.floor(Math.random() * 10 + 1);
-        /*console.log("rdm:" + x);*/
-
-        var ctx = c.getContext("2d");
-        ctx.fillStyle = "Red";
-        ctx.fillText("|", x * 80, 300);
-
-    }
+    
 
 </script>

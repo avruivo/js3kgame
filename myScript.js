@@ -277,7 +277,7 @@ var lvl = {
         waves = { ys1: ys1, ys2: ys2 };
 
         var lessThan = Math.random() < .5;
-        lessThan = true;
+        //lessThan = true;
 
         var side1 = lessThan ? "R" : "L";
         var side2 = lessThan ? "L" : "R";
@@ -287,9 +287,9 @@ var lvl = {
 
         currentLevel.push(new lvlEvent(0, new Raft()));
 
-        currentLevel.push(new lvlEvent(1, new Fish()));
-        currentLevel.push(new lvlEvent(3, new Fish()));
-        currentLevel.push(new lvlEvent(5, new Fish()));
+        //currentLevel.push(new lvlEvent(1, new Fish()));
+        //currentLevel.push(new lvlEvent(3, new Fish()));
+        //currentLevel.push(new lvlEvent(5, new Fish()));
         /*
         currentLevel.push(new lvlEvent(3, new Fish()));
         currentLevel.push(new lvlEvent(6, new Fish()));
@@ -842,18 +842,25 @@ function updateGame() {
     ctx.globalAlpha = opacity;
     ctx.clearRect(0, 0, c.width, c.height);
     Draw.sky(ctx);
+    Draw.hpBar(ctx);
 
     if (hud.health <= 0) {
         funcStopLoop(intervals[0]);
         clearExtraIntervals(intervals);
         currentLevel = null;
-        var playAgain = confirm("Game Over! You survived " + currentSeconds() + " seconds!")
-        if (playAgain)
-            restartGame();
-        else {
-            clearExtraIntervals(intervals);
-            funcStopLoop(intervals[0]);
+        
+
+        var method = function () {
+            var playAgain = confirm("Game Over! You survived " + currentSeconds() + " seconds!")
+            if (playAgain)
+                restartGame();
+            else {
+                clearExtraIntervals(intervals);
+                funcStopLoop(intervals[0]);
+            }
         }
+
+        setTimeout(method, 500);
         //console.log("Game Over!");
     }
 
@@ -1155,11 +1162,13 @@ function write(iShape) {
     var shape = iShape.shape;
     var ctx = c.getContext("2d");
     ctx.fillStyle = "Red";
-    ctx.fillText(shape.name, shape.x, shape.y);
+
+
+    //ctx.fillText(shape.name, shape.x, shape.y); //write npc label
 
     if (shape.name.lastIndexOf("shark", 0) === 0) {
         ctx.fillStyle = "White";
-        ctx.fillText(iShape.health, shape.x + 40, shape.y + 20);
+        //ctx.fillText(iShape.health, shape.x + 40, shape.y + 20); //write npc HP
 
         Draw.shark(ctx, iShape); // 100.000000, 1000.000000);
 
@@ -1209,7 +1218,7 @@ function Hud(hp, str) {
         var ctx = c.getContext("2d");
         ctx.font = '15pt Verdana';
         ctx.fillStyle = "Black";
-        var hpTxt = "Health:     " + this.health;
+        var hpTxt = "Health:     ";
         var strengthTxt = "Strength: " + this.strength;
 
 
@@ -2460,7 +2469,21 @@ var Draw = {
 
         ctx.fillStyle = grd;
         ctx.fillRect(0, 0, c.width, c.height);
+    },
+
+    hpBar: function(ctx){
+    //ctx.globalAlpha = .8;
+    //var grd = ctx.createLinearGradient(80, 0, 80, 140);
+    //grd.addColorStop(0, "red");
+    //grd.addColorStop(1, "white");
+
+    ctx.fillStyle = "red";
+
+    for (var i = 0; i < hud.health; i++) {
+        ctx.fillRect(100 + i*25, 16, 15, 15);
     }
+    
+}
 }
 
 function restartGame() {
