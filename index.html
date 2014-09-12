@@ -2,15 +2,12 @@
 <head title="castaway">
     <style>
         #canvas {
-            background-image: url('thumb01.png');
+            //background-image: url('thumb01.png');
         }
     </style>
     <script src="myScript.js"></script>
 </head>
 <body onload="init()">
-    hello world
-    <br />
-    <label id="lblMsg"></label>
     <br />
     <button id="stopLoop">Stop loop!</button>  <button id="restartGame">RestartGame!</button>
     <br />
@@ -47,6 +44,10 @@ touch-action: none; -webkit-user-select: none; -webkit-tap-highlight-color: rgba
 
     var opacity = 0.8;
     var fishToEat = 0;
+    var showBoundingBoxs = false;
+    var scrollLeft = true;
+
+    var waves;
 
 
     /* ---- GLOBALS (-) ----- */

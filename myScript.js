@@ -52,12 +52,15 @@ function killAllShapes(list) {
 }
 
 function init() {
-//    alert('Mr Elementualle has been in a deserter island for a couple of years, \nunexpectedly he ran into a magic coconut which gave him magical powers that will help him escape from the island. \nPress:'
-//+ '\n    "1"  - to fix the raft, with your earth power, and gain some health;'
-//+ '\n    "2"  - to catch a fish, with your air power, and gain some health;'
-//+ '\n    "3"  - to attack the sharks, with your fire power;'
-//+ '\n    <=-  - to move left;'
-//+ '\n    -=>  - to move right.');
+    var showHelp = getParameterByName("showHelp");
+    if (showHelp != undefined && showHelp != null && showHelp != "false") {
+        alert('Mr Elementualle has been in a deserter island for a couple of years, \nunexpectedly he ran into a magic coconut which gave him magical powers that will help him escape from the island. \nPress:'
+            + '\n    "1"  - to fix the raft, with your earth power, and gain some health;'
+            + '\n    "2"  - to catch a fish, with your air power, and gain some health;'
+            + '\n    "3"  - to attack the sharks, with your fire power;'
+            + '\n    <=-  - to move left;'
+            + '\n    -=>  - to move right.');
+    }
 
     //Set up key listener
     function onkey(d, e) {
@@ -140,7 +143,7 @@ function init() {
 
     document.getElementById("restartGame").addEventListener('click', function () {
         alert("Game Restart!");
-        gameInit();
+        restartGame();
     }, false);
 
     document.getElementById("fire1").addEventListener('click', function () {
@@ -268,6 +271,10 @@ var lvl = {
     },
 
     lvl01: function () {
+        
+        var ys1 = [new waveCfg(-75, 0, 1)];
+        var ys2 = ys = [new waveCfg(-35, -200, .8), new waveCfg(0, -30, 1)];
+        waves = { ys1: ys1, ys2: ys2 };
 
         var lessThan = Math.random() < .5;
         lessThan = true;
@@ -328,6 +335,7 @@ var lvl = {
         //currentLevel.push(new lvlEvent(17, new Shark()));
         //currentLevel.push(new lvlEvent(18, new Shark()));
     }
+
 }
 
 
@@ -833,6 +841,7 @@ function updateGame() {
     var ctx = c.getContext("2d");
     ctx.globalAlpha = opacity;
     ctx.clearRect(0, 0, c.width, c.height);
+    Draw.sky(ctx);
 
     if (hud.health <= 0) {
         funcStopLoop(intervals[0]);
@@ -840,7 +849,7 @@ function updateGame() {
         currentLevel = null;
         var playAgain = confirm("Game Over! You survived " + currentSeconds() + " seconds!")
         if (playAgain)
-            gameInit();
+            restartGame();
         else {
             clearExtraIntervals(intervals);
             funcStopLoop(intervals[0]);
@@ -865,22 +874,8 @@ function updateGame() {
     }
     */
 
-    for (var i = 0; i < 14; i++) {
-        //Draw.waves(ctx, i, 2 * -40, 0, .8);
-        
-        //Draw.waves(ctx, i, 20, -30, 1);
-        //Draw.waves(ctx, i, -80, -30, 1);
-        //Draw.waves(ctx, i, -40, -60, 1);
-        
-        
-
-
-        Draw.waves(ctx, i, -70, 0, 1, .8);
-        
-        //Draw.waves(ctx, i, 0, -30, 1, .8);
-    }
-    
-    
+    //draw waves before NCPs
+    Draw.wavesPattern(ctx, waves.ys1);
 
     for (var i in shapeList) {
         shapeList[i].shape.isCollision = false; //reset collision;
@@ -888,10 +883,10 @@ function updateGame() {
         if (iShape != null) {
             currShape = iShape.shape;
 
-            if (showBoundingBoxs){
+            if (showBoundingBoxs) {
                 ctx.fillStyle = getFill(currShape);
                 ctx.fillRect(currShape.x, currShape.y, currShape.w, currShape.h);
-                
+
             }
             write(iShape);
 
@@ -901,21 +896,9 @@ function updateGame() {
         }
     }
 
+    //draw waves after NPSc
+    Draw.wavesPattern(ctx, waves.ys2);
 
-    for (var i = 0; i < 14; i++) {
-        //Draw.waves(ctx, i, 2 * -40, 0, .8);
-        
-        Draw.waves(ctx, i, -30, -30, 0.8);
-        
-        //Draw.waves(ctx, i, -80, -30, 1);
-        //Draw.waves(ctx, i, -40, -60, 1);
-
-
-
-
-        //Draw.waves(ctx, i, -20, 0, 0.8);
-        //Draw.waves(ctx, i, 0, -30, 0.8);
-    }
 
     /*
     var newXpto = xpto++;
@@ -930,6 +913,18 @@ function updateGame() {
 
     debug()
 
+}
+
+function isScrollLeft() {
+    return this.scrollLeft = !this.scrollLeft;
+}
+
+var waveCfg = function (y, offset, alpha) {
+    this.y = y;
+    this.offset = offset;
+    this.alpha = alpha;
+    this.scrollLeft = isScrollLeft();
+    this.originalOffset = offset;
 }
 
 function debug() {
@@ -949,11 +944,21 @@ function drawBlast(x, y) {
     //ctx.fillStyle = "White";
     //ctx.fillText("BLAST!!!", x + 40, y + 20);
 
+
+
     //return;
-    var radius = 80;
+    var radius = 40;
     var context = c.getContext("2d");
+    context.globalAlpha = .7;
     context.beginPath();
-    context.arc(x, y, radius, Math.PI, 2 * Math.PI, false);
+   
+    var signal = 1;
+    if (magePlayer.direction == "R") {
+        signal = -1;
+    }
+
+    var newX = x + (signal * 25);
+    context.arc(newX, y, radius, Math.PI, 2 * Math.PI, false);
     context.fillStyle = '#FFA500';
     context.fill();
     context.lineWidth = 5;
@@ -1156,12 +1161,12 @@ function write(iShape) {
         ctx.fillStyle = "White";
         ctx.fillText(iShape.health, shape.x + 40, shape.y + 20);
 
+        Draw.shark(ctx, iShape); // 100.000000, 1000.000000);
+
         //console.log(iShape.drawBlast);
         if (iShape.drawBlast) {
             drawBlast(shape.x + shape.w / 2, shape.y + 20);
         }
-
-        Draw.shark(ctx, iShape); // 100.000000, 1000.000000);
 
     } else if (iShape.shape.name == "mage") {
         Draw.mage(ctx, iShape);
@@ -2363,23 +2368,56 @@ var Draw = {
         ctx.restore();
     },
 
+    wavesPattern: function (ctx, ys) {
+        for (var i = 0; i < ys.length; i++) {
+            for (var j = 0; j < 14; j++) {
+
+                //var offset = ys[i].offset;
+
+                if (frameCount % 10 == 0) {
+                    var signal;
+                    if (ys[i].scrollLeft)
+                        signal = 1;
+                    else
+                        signal = -1;
+
+                    var xxx
+                    console.log("Math.abs(ys[i].offset - ys[i]):" + Math.abs(ys[i].offset - ys[i].originalOffset));
+
+                    if (Math.abs(ys[i].offset - ys[i].originalOffset) > 80)
+                        ys[i].offset = ys[i].originalOffset;
+
+                    var parlaxSpeed;
+                    if (ys[i].y <= -75)
+                        parlaxSpeed = .1;
+                    else if (ys[i].y <= -35)
+                        parlaxSpeed = .3;
+                    else
+                        parlaxSpeed = .6;
+
+                    ys[i].offset += .1 * signal;
+                }
+                Draw.waves(ctx, j, ys[i].y, ys[i].offset, 1, ys[i].alpha);
+            }
+        }
+    },
+
     waves: function (ctx, x, y, offsetX, scale, alpha) {
-        
+
         ctx.globalAlpha = alpha;
-        console.log(ctx.globalAlpha);
-        var grd=ctx.createLinearGradient(80,0,80,140);
+        var grd = ctx.createLinearGradient(80, 0, 80, 140);
         grd.addColorStop(0, "#0099ff");
         grd.addColorStop(1, "white");
 
-        ctx.fillStyle=grd;
-        
+        ctx.fillStyle = grd;
+
 
         // #layer1
-        var shape = { x: x, y: y, name: 'wave'};
+        var shape = { x: x, y: y, name: 'wave' };
         ctx.save();
         //ctx.transform(scale, 0.000000, 0.000000, 1.000000, 0, 0);
 
-        ctx.transform(1.00000, 0.000000, 0.000000, 1.000000, -407.952300 + 80 * x + offsetX, -545.130710 + 408 + y);
+        ctx.transform(1.00000, 0.000000, 0.000000, 1.000000, -407.952300 + 80 * x + offsetX - currentSeconds(), -545.130710 + 408 + y);
         //ctxtransform(1.000000, 0.000000, 0.000000, 1.000000, -407.952300, -545.130710, ctx, shape);
 
         // #g3420
@@ -2395,7 +2433,7 @@ var Draw = {
         ctx.transform(1.243316, 0.000000, 0.000000, 1.243316, 516.711150, 218.561120);
 
 
-        
+
 
         // #path4084
         ctx.fillStyle = grd;//'rgb(0, 0, 255)';
@@ -2412,5 +2450,27 @@ var Draw = {
         ctx.restore();
         ctx.restore();
         ctx.restore();
+    },
+
+    sky: function(ctx){
+        ctx.globalAlpha = .9;
+        var grd = ctx.createLinearGradient(80, 0, 80, 140);
+        grd.addColorStop(0, "#0099ff");
+        grd.addColorStop(1, "white");
+
+        ctx.fillStyle = grd;
+        ctx.fillRect(0, 0, c.width, c.height);
     }
+}
+
+function restartGame() {
+    //gameInit(); //there was a bug with game restart
+    window.location = "?showHelp=false"; //bad solution, but no more time
+}
+
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results == null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
