@@ -214,6 +214,21 @@ var lvl = {
         currentLevel.push(new lvlEvent(36, new Shark(null, side2)));
         currentLevel.push(new lvlEvent(37, new Shark(null, side2)));
         currentLevel.push(new lvlEvent(37, new Fish()));
+		
+		
+		currentLevel.push(new lvlEvent(40, new Shark(null, null, true)));
+		currentLevel.push(new lvlEvent(43, new Shark(null, null, true)));
+		
+		
+		
+		
+		
+		
+		// currentLevel.push(new lvlEvent(44, new Shark(null, null, true)));
+		// currentLevel.push(new lvlEvent(45, new Shark(null, null, true)));
+		// currentLevel.push(new lvlEvent(46, new Shark(null, null, true)));
+		// currentLevel.push(new lvlEvent(47, new Shark(null, null, true)));
+
     }
 
 }
@@ -490,9 +505,9 @@ var Fish = function () {
         shapeList.push(that);
     }
 
-    //this.gotHit = function (hitFrom) {
+    this.gotHit = function (hitFrom) {
     //    //console.log('I("' + this.shape.name + '") was hit by "' + hitFrom.shape.name + '"');
-    //};
+    };
 
     this.hitWith = function (target) {
         //console.log('I("' + this.name + '") just hit "' + target.name + '"');
@@ -2056,8 +2071,11 @@ var Draw = {
     },
 
     hpBar: function (ctx) {
-        ctx.fillStyle = "red";
-        for (var i = 0; i < hud.health; i++) {
+        for (var i = 0; i < Constants.PLAYER_MAX_HP; i++) {
+			if(hud.health > i)
+				ctx.fillStyle = "#1c5cff"; //blue
+			else
+				ctx.fillStyle = "#a90000"; //red
             ctx.fillRect(100 + i * 25, 16, 15, 15);
         }
 
